@@ -1,6 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { reserveCall, validateResult } from '../convex/rules.ts';
+import { photoPrompt, reserveCall, validateResult } from '../convex/rules.ts';
+test('JSON reply mode has the required JSON instruction in the input message', () => {
+  assert.match(photoPrompt(4), /json/i);
+  assert.match(photoPrompt(4), /4 years old/);
+});
 test('100 calls are allowed, the 101st is blocked, and only expired calls free capacity', () => {
   const now = 4000000;
   let calls: number[] = [];

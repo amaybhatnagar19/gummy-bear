@@ -1,3 +1,6 @@
+export function photoPrompt(age: number): string {
+  return `My child is ${age} years old. Name the toys in this photo and give 3 play ideas for these exact toys. Return JSON with toys and ideas.`;
+}
 export function reserveCall(timestamps: number[], now: number): number[] | null {
   const recent = timestamps.filter(t => t > now - 3600000);
   return recent.length >= 100 ? null : [...recent, now];
