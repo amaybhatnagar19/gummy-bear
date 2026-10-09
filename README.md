@@ -65,4 +65,14 @@ npm run deploy
 
 This builds and publishes to the production `.convex.site` address. A Git push does not deploy the app.
 
-The milestone has not been published to production.
+Live page: https://sensible-avocet-370.convex.site
+
+Production has a separate API key from development. Until it is set, the live page opens but returns a connection setup message when requesting ideas.
+
+Check the deployed page with a real toy photo:
+
+```sh
+GUMMY_TEST_URL=https://sensible-avocet-370.convex.site REQUIRE_LIVE_AI=1 npx playwright test
+```
+
+Live proof files are saved separately under `.impeccable/review/live/`.
