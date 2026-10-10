@@ -34,6 +34,7 @@ test('parent picks one real toy photo and requests three ideas', async ({ page }
     for (const idea of body.value.ideas) await expect(page.getByRole('heading', { name: idea.title })).toBeVisible();
     writeFileSync(`${proofDir}/raw-ai-output.txt`, body.value.raw);
     console.log('FULL RAW AI OUTPUT:\n' + body.value.raw);
+    expect(body.value.toys.join(' '), 'The dressed teddy must be named as a teddy or conservatively as a stuffed animal').toMatch(/teddy|bear|stuffed animal|soft animal|plush animal/i);
   } else {
     await expect(page.getByRole('alert')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Try again', exact: true })).toBeEnabled();

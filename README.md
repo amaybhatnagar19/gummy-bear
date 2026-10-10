@@ -67,7 +67,7 @@ This builds and publishes to the production `.convex.site` address. A Git push d
 
 Live page: https://sensible-avocet-370.convex.site
 
-Production has a separate API key from development. Until it is set, the live page opens but returns a connection setup message when requesting ideas.
+Production has its own API key, now configured in Convex. If it is missing, the live page opens but returns a connection setup message when requesting ideas.
 
 Check the deployed page with a real toy photo:
 
