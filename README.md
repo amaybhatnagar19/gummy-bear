@@ -104,7 +104,7 @@ This builds and publishes to the production `.convex.site` address. A Git push d
 
 Live page: https://sensible-avocet-370.convex.site
 
-Production has its own OpenAI key, configured in Convex. The paywall/auth change is currently tested on development and has not been published; the live page continues to run the previous photo experience. Add the actual QR image before publishing the payment screen.
+Production has its own OpenAI key and Convex Auth signing keys, configured in Convex. The paywall/auth change and the owner's UPI QR image are now published. The real-photo flow, production signup, returning login, and QR display are checked on the live site. Manual payment/expiry rules are covered by development tests; no production test payment was marked.
 
 Check the deployed page with a real toy photo:
 
