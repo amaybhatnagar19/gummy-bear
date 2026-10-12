@@ -8,6 +8,11 @@
  * @module
  */
 
+import type * as access from "../access.js";
+import type * as auth from "../auth.js";
+import type * as http from "../http.js";
+import type * as ideas from "../ideas.js";
+import type * as paymentRules from "../paymentRules.js";
 import type * as play from "../play.js";
 import type * as quota from "../quota.js";
 import type * as rules from "../rules.js";
@@ -19,6 +24,11 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  access: typeof access;
+  auth: typeof auth;
+  http: typeof http;
+  ideas: typeof ideas;
+  paymentRules: typeof paymentRules;
   play: typeof play;
   quota: typeof quota;
   rules: typeof rules;

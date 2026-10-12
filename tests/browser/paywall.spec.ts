@@ -1,0 +1,67 @@
+import { test, expect } from '@playwright/test';
+import { execFileSync } from 'node:child_process';
+import { mkdirSync } from 'node:fs';
+test('two free turns, signup, one account bonus, manual payment, and returning login', async ({ page }) => {
+  test.setTimeout(240000);
+  if (process.env.GUMMY_TEST_URL) test.skip(true, 'Payment test accounts are created only on development.');
+  const email = `paywall-test-${Date.now()}@example.com`;
+  const password = 'Gummy-test-' + crypto.randomUUID();
+  let replies: any[] = [];
+  page.on('websocket', socket => socket.on('framereceived', frame => {
+    try { const m = JSON.parse(String(frame.payload)); if (m.type === 'ActionResponse') replies.push(m); } catch {}
+  }));
+  await page.goto('/');
+  await page.getByLabel('Choose one toy photo').setInputFiles('tests/fixtures/teddy.jpg');
+  async function play() {
+    const before = replies.length;
+    await page.getByRole('button', {name: /Find play ideas|Find three more ideas/, exact: true}).click();
+    await expect.poll(() => replies.slice(before).find(r => r.result?.raw), {timeout: 75000}).toBeTruthy();
+    const reply = replies.slice(before).find(r => r.result?.raw);
+    expect(reply.success).toBe(true); expect(reply.result.ideas).toHaveLength(3);
+    await expect(page.getByRole('button', {name: 'Find three more ideas', exact: true})).toBeVisible();
+  }
+  await play();
+  await page.reload();
+  await page.getByLabel('Choose one toy photo').setInputFiles('tests/fixtures/teddy.jpg');
+  await play();
+  await page.getByRole('button', {name: 'Find three more ideas', exact: true}).click();
+  await expect(page.getByRole('heading', {name: 'Keep the play going'})).toBeVisible();
+  mkdirSync('.impeccable/review/paywall', {recursive: true});
+  await page.screenshot({path: '.impeccable/review/paywall/signup.png', fullPage: true});
+  await page.getByLabel('Email', {exact: true}).fill(email);
+  await page.getByLabel('Password', {exact: true}).fill(password);
+  await page.getByRole('button', {name: 'Sign up', exact: true}).click();
+  await expect(page.getByRole('heading', {name: 'A little more playtime'})).toBeVisible({timeout: 20000});
+  await expect(page.getByText('₹99 a month')).toBeVisible();
+  mkdirSync('.impeccable/review/paywall', {recursive: true});
+  await page.screenshot({path: '.impeccable/review/paywall/payment.png', fullPage: true});
+  await page.setViewportSize({width: 390, height: 844});
+  await page.screenshot({path: '.impeccable/review/paywall/payment-mobile.png', fullPage: true});
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.setViewportSize({width: 1280, height: 720});
+  await page.getByRole('button', {name: 'Use free one last time', exact: true}).click();
+  await expect(page.getByRole('img', {name: 'Your selected toy photo'})).toBeVisible();
+  await play();
+  await page.getByRole('button', {name: 'Find three more ideas', exact: true}).click();
+  await expect(page.getByText('₹99 a month')).toBeVisible();
+  await expect(page.getByRole('button', {name: 'Use free one last time', exact: true})).toHaveCount(0);
+  execFileSync('npx', ['convex', 'run', 'access:markPaid', JSON.stringify({email})], {encoding: 'utf8'});
+  await expect(page.getByRole('img', {name: 'Your selected toy photo'})).toBeVisible({timeout: 20000});
+  await play();
+  await page.getByRole('button', {name: 'Log out', exact: true}).click();
+  await page.getByRole('button', {name: 'Log in', exact: true}).click();
+  await expect(page.getByRole('heading', {name: 'Welcome back'})).toBeVisible();
+  await page.getByLabel('Email', {exact: true}).fill(email);
+  await page.getByLabel('Password', {exact: true}).fill('wrong-password');
+  await page.getByRole('button', {name: 'Log in', exact: true}).last().click();
+  await expect(page.getByRole('alert')).toBeVisible();
+  await page.screenshot({path: '.impeccable/review/paywall/login-error.png', fullPage: true});
+  await page.getByLabel('Password', {exact: true}).fill(password);
+  await page.getByRole('button', {name: 'Log in', exact: true}).last().click();
+  await expect(page.getByRole('img', {name: 'Your selected toy photo'})).toBeVisible({timeout: 20000});
+  await page.reload();
+  await expect(page.getByRole('button', {name: 'Log out', exact: true})).toBeVisible();
+  await page.setViewportSize({width: 390, height: 844});
+  await page.screenshot({path: '.impeccable/review/paywall/signed-in-mobile.png', fullPage: true});
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});

@@ -1,9 +1,10 @@
-import { action } from "./_generated/server";
+import { internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { ConvexError, v } from "convex/values";
 import { photoPrompt, validateResult } from "./rules";
 const idea = v.object({ title: v.string(), instructions: v.string() });
-export const discover = action({
+export { discover } from './ideas';
+export const generate = internalAction({
   args: { image: v.string(), age: v.number() },
   returns: v.object({ toys: v.array(v.string()), ideas: v.array(idea), raw: v.string() }),
   handler: async (ctx, { image, age }) => {
