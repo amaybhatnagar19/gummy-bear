@@ -15,11 +15,14 @@ test('100 calls are allowed, the 101st is blocked, and only expired calls free c
   assert.deepEqual(reserveCall(calls, now + 3600000), [now + 3600000]);
   assert.equal(reserveCall([now - 3600001, ...Array(99).fill(now)], now)?.length, 100);
 });
-test('a reply must contain three complete ideas, or no toys and no ideas', () => {
+test('a legacy reply accepts one to three complete ideas, or no toys and no ideas', () => {
   assert.deepEqual(validateResult({ toys: [], ideas: [] }), { toys: [], ideas: [] });
   assert.throws(() => validateResult({ toys: ['teddy'], ideas: [] }));
   assert.throws(() => validateResult({ toys: [], ideas: [{ title: 'x', instructions: 'x' }] }));
   const result = { toys: ['teddy'], ideas: Array.from({ length: 3 }, () => ({ title: 'Bear rescue', instructions: 'Help the teddy get home.' })) };
   assert.deepEqual(validateResult(result), result);
+  assert.deepEqual(validateResult({ ...result, ideas: result.ideas.slice(0, 1) }).ideas.length, 1);
+  assert.deepEqual(validateResult({ ...result, ideas: result.ideas.slice(0, 2) }).ideas.length, 2);
+  assert.throws(() => validateResult({ ...result, ideas: [...result.ideas, result.ideas[0]] }));
   assert.throws(() => validateResult({ ...result, ideas: [{ title: '', instructions: '' }] }));
 });

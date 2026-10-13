@@ -11,7 +11,7 @@ test('two free turns, signup, one account bonus, manual payment, and returning l
   page.on('websocket', socket => socket.on('framereceived', frame => {
     try { const m = JSON.parse(String(frame.payload)); if (m.type === 'ActionResponse') replies.push(m); } catch {}
   }));
-  await page.goto('/');
+  await page.goto('/app');
   await labelTestVisitor(page);
   await page.getByLabel('Choose one toy photo').setInputFiles('tests/fixtures/teddy.jpg');
   async function play() {

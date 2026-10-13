@@ -8,7 +8,7 @@ test('parent picks one real toy photo and requests three ideas', async ({ page }
   page.on('websocket', socket => socket.on('framereceived', frame => {
     try { const message = JSON.parse(String(frame.payload)); if (message.type === 'ActionResponse') actionResponse = message; } catch {}
   }));
-  await page.goto('/');
+  await page.goto('/app');
   await labelTestVisitor(page);
   await expect(page.getByRole('button', { name: 'Find play ideas', exact: true })).toBeDisabled();
   await expect(page.getByText('Old toys. New possibilities.')).toBeVisible();

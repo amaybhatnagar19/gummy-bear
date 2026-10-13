@@ -1,6 +1,6 @@
 # Gummy Bear
 
-Take or choose one toy photo, choose an age (2–8), and get toy names and three play ideas. The original photo flow is preserved; access is checked before the AI action. No saved chat history, child profiles, reminders, WhatsApp, or landing page.
+The public landing is at `/`. The existing application is at `/app` (also `/app/`). Take or choose one toy photo, choose an age (2–8), and get toy names and up to three play ideas. The original application flow and access rules are preserved. Saved toy collections, child profiles, recognition correction and reminders are planned; landing demonstrations are labeled illustrative.
 
 ## Free turns and payment access
 
@@ -129,3 +129,33 @@ Reports exclude `amay.bhatnagar@gmail.com`, email addresses on example.com/org/n
 The recording start is printed in the report. Earlier days show `null` for photo metrics; the start day is explicitly partial. Older photo runs cannot be reconstructed and are not fabricated. Current-day figures cover only the report time. Pending runs remain distinguishable from successful/failed runs; interrupted runs are marked failed after 90 seconds.
 
 No photo, image URL, base64 content, toy names, play ideas or passwords are saved in the new analytics tables. An authenticated legacy caller without a browser token is represented by an account-based anonymous fallback ID to keep its call working; current pages always supply the existing browser token. Signup and paywall behavior, model settings and the OpenAI key are unchanged.
+
+## D1 landing checks and rollback
+
+D1 adds only the public landing, shared landing foundations and a two-page URL switch. Plain links open `/app`; the app uses the same Convex/Auth provider and URL namespace, so route changes do not change stored session keys. Refresh and Back rely on static hosting serving `index.html` for page addresses. Assets remain rooted at `/`, including `/payments/`.
+
+The supplied design-package HTML is a visual reference, not production code. The landing uses the specified palette with the approved system-font fallback and a text brand mark. Planned recognition, inventory and reminders are clearly labeled. No mascot or photo assets were added.
+
+Safe browser checks use the existing Playwright installation and a fresh browser profile. Start a dedicated local server with a synthetic backend address:
+
+```sh
+VITE_CONVEX_URL=https://d1-isolated.invalid npm run dev -- --port 5184 --strictPort
+```
+
+Then run only the isolated D1 file:
+
+```sh
+npm test
+npm run build
+GUMMY_TEST_URL=http://127.0.0.1:5184 npx playwright test tests/browser/d1.spec.ts
+```
+
+D1 tests block external HTTP and replace external WebSockets with synthetic replies. They do not connect to Convex, create accounts, confirm payments or call AI. Synthetic signed-in checks exercise the real client/provider and unchanged controls; they do not verify a real account session. Layout screenshots are temporary files under ignored `test-results/`. The text-size check enlarges text to 200%; actual browser zoom and screen-reader checks remain separate manual checks.
+
+**Do not run the full browser suite as a D1 check.** `photo.spec.ts` and `paywall.spec.ts` remain live integration tests that can spend credits or mutate accounts/payments. They now open `/app`.
+
+Before D1 edits, the current HEAD, working-tree status, copies of changed existing files, and hashes of protected files were saved under `.git/d1-baseline/`. This local baseline is not published and may contain pre-existing uncommitted work.
+
+To undo D1 locally, stop the development server, restore only the files listed in `.git/d1-baseline/state.json` from `.git/d1-baseline/files/`, and remove only the new D1 files listed in the D1 handoff. Run `npm test` and `npm run build`. Never use a repository-wide reset or clean. If additional work has since changed those same files, compare and remove D1 changes selectively instead of overwriting later work. The final D1-only change is also saved in the private local Git reference `refs/d1/complete`, with `refs/d1/before` as its baseline. These checkpoints do not move your branch, stage files in your normal index, or commit unrelated work to your branch. Review with `git diff refs/d1/before refs/d1/complete`.
+
+For the exact local undo, run `python3 .git/d1-baseline/rollback.py`. It refuses to overwrite any D1 file changed after this handoff, restores the five original files, and removes only the nine newly created D1 files. Run this only when you intend to undo D1. No database rollback is needed. No D1 deployment has been authorized or performed.

@@ -1,0 +1,29 @@
+:root {
+  --gb-bg: #faf8f5;
+  --gb-surface: #fff;
+  --gb-text: #292832;
+  --gb-muted: #666471;
+  --gb-brand: #65518f;
+  --gb-brand-pressed: #49376f;
+  --gb-soft: #f0ebf7;
+  --gb-peach: #f7d8cb;
+  --gb-mint: #d7e9df;
+  --gb-border: #e8e4e2;
+  --gb-focus: #2f65c7;
+  --gb-font: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --gb-space-1: 4px;
+  --gb-space-2: 8px;
+  --gb-space-3: 12px;
+  --gb-space-4: 16px;
+  --gb-space-5: 24px;
+  --gb-space-6: 32px;
+  --gb-space-7: 48px;
+  --gb-space-8: 64px;
+  --gb-space-9: 96px;
+  --gb-radius-control: 12px;
+  --gb-radius-card: 20px;
+  --gb-radius-panel: 28px;
+  --gb-width: 1200px;
+  --gb-body-size: 16px;
+  --gb-display-size: clamp(36px, 4.6vw, 68px);
+}
