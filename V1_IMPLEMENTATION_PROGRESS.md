@@ -71,3 +71,15 @@ The owner approved creating the separate testing project under the existing team
 ## Continuous V1 execution — quality checkpoint
 
 14 October 2026: verified the isolated project again; baseline 272 guarded tests + 3 Node tests/build passed. Checkpoint f3afcad. Added five quality regressions (one reproduced verbose filler before fix), filtered verbose filler, preserved legacy successful results during retries, and removed provider error-message logging. 277 guarded + 3 Node tests/build passed. Durable real personal-data collection, email providers and paid AI remain closed pending their explicit approval; independent implementation continues.
+
+## Integrated V1 implementation checkpoint
+
+- Implemented separate recognition/correction/age/ideas routes; corrected names are actual provider inputs, with server-side reference enforcement. Full cards and detail views, alternatives, recoverable failures and temporary deep-link recovery are connected.
+- Added account-owned child, toy, activity, attempt, preference, guest-link and testing-admission tables/functions. Real personal-data writes default closed; synthetic tests exercise persistence, family authorization, deletion and guest linking. This is not approval to collect real family information.
+- Saved, favorite, intended and parent-reported tried/feedback are independent. History rejects cosmetic repeats; group safety uses the youngest selected child. Toys have explicit status, condition, assignments, outgrown and acquisition date separate from upload.
+- Manual/in-app rediscovery honors acquisition age, suppression and opt-out. Unsafe/damaged donation advice is blocked. Email delivery remains blocked, not represented as working.
+- Google is wired behind isolated deployment + privacy + explicit provider approval/configuration gates; no keys installed. Email OTP provider factory is deterministic-testable but has no approved delivery adapter and is not registered. Legacy password remains; proved provider IDs are preserved and same-email collisions are refused in testing.
+- 300 guarded tests + 3 Node tests and production build pass at this checkpoint. New guest browser journey (2 tests) and restored shell checks (3 tests) passed. Existing safe landing checks passed; full combined rerun follows.
+- No real accounts, family data, paid AI or production resources accessed. Only guarded function/schema pushes to the verified testing deployment.
+
+Verified 11 combined isolated browser tests; 306 guarded backend/unit tests + 3 Node tests passed before the final invited-guest regression additions. Fixed month-end two-month cutoff, phone removal, cross-family toy/activity/reminder operations, explicit duplicate toy confirmation, and suppression based only on linked parent-reported attempts. Guest cleanup is scheduled hourly in testing. Added anonymous invitation capabilities so first value does not require account creation; existing trial/refund behavior remains enforced. Signed-in testers still require existing access under the unchanged billing contract; any temporary grant beyond it needs a verified access-policy decision before enabling live AI.

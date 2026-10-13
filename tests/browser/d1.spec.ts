@@ -22,7 +22,7 @@ test('public page and existing app survive direct navigation, refresh and Back',
   await expect(page.getByRole('heading', { name: 'Let’s see those toys' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Log in', exact: true })).toBeEnabled();
   await page.reload();
-  await expect(page.getByLabel('How old is your child?')).toHaveValue('4');
+  await expect(page.getByRole('button', { name:'Recognize toys',exact:true })).toBeDisabled();
   await page.goBack();
   await expect(page.getByRole('heading', { level: 1 })).toContainText('already at home');
   // Even browsers restoring from history must not mix app CSS into the landing.
@@ -35,8 +35,8 @@ test('public page and existing app survive direct navigation, refresh and Back',
   await page.getByRole('button', { name: 'Back to my toys' }).click();
   await page.getByLabel('Choose one toy photo').setInputFiles({ name: 'synthetic-fixture.jpg', mimeType: 'image/jpeg', buffer: fixture });
   await expect(page.getByRole('img', { name: 'Your selected toy photo' })).toBeVisible();
-  await page.getByLabel('How old is your child?').selectOption('3');
-  await expect(page.getByRole('button', { name: 'Find play ideas', exact: true })).toBeEnabled();
+
+  await expect(page.getByRole('button', { name: 'Recognize toys', exact: true })).toBeEnabled();
   await expect(page.getByLabel('Take one toy photo')).toHaveAttribute('capture', 'environment');
   await page.goto('/app/');
   await expect(page.getByRole('heading', { name: 'Let’s see those toys' })).toBeVisible();

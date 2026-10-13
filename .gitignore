@@ -7,3 +7,5 @@ playwright-report/
 
 # Private isolated CLI workspace (testing credentials only)
 .convex-v1-testing/
+
+dist-v1-testing/

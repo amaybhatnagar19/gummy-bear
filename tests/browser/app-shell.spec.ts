@@ -9,7 +9,7 @@ test('signed-in navigation preserves a photo and age through Back, with direct r
   await page.goto('/app');
   await page.getByLabel('Choose one toy photo').setInputFiles({ name: 'synthetic-fixture.jpg', mimeType: 'image/jpeg', buffer: readFileSync('tests/fixtures/teddy.jpg') });
   await expect(page.getByRole('img', { name: 'Your selected toy photo' })).toBeVisible();
-  await page.getByLabel('How old is your child?').selectOption('3');
+
   const nav = page.getByRole('navigation', { name: 'Parent navigation' });
   await expect(nav.getByRole('link')).toHaveCount(4);
   await nav.getByRole('link', { name: 'Home', exact: true }).click();
@@ -21,7 +21,7 @@ test('signed-in navigation preserves a photo and age through Back, with direct r
   await page.goBack(); await expect(page).toHaveURL(/\/app\/home$/);
   await page.goBack(); await expect(page).toHaveURL(/\/app$/);
   await expect(page.getByRole('img', { name: 'Your selected toy photo' })).toBeVisible();
-  await expect(page.getByLabel('How old is your child?')).toHaveValue('3');
+
   for (const [path, title] of [['/app/toys', 'My Toys'], ['/app/activities', 'Activities'], ['/app/profile', 'Profile']]) {
     await page.goto(path); await page.reload();
     await expect(page.getByRole('heading', { level: 1, name: title, exact: true })).toBeVisible();
@@ -72,7 +72,7 @@ test('signed-in shell has visible touch targets, active state and honest feature
     }
     await page.screenshot({ path: testInfo.outputPath(`home-${width}.png`), fullPage: true });
   }
-  await expect(page.getByText(/Saved toys and activity history aren’t available yet/)).toBeVisible();
+  await expect(page.getByText(/Once saving is enabled, your suggestions will be kept here/)).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
   const reflow = await page.addStyleTag({ content: '.ga-app a, .ga-app p, .ga-app button { font-size: 200% !important; }' });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

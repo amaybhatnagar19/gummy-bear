@@ -9,7 +9,8 @@
     "test": "node --experimental-strip-types --test tests/rules.test.ts && vitest run",
     "deploy": "npx @convex-dev/static-hosting deploy",
     "testing:verify": "node scripts/convex-testing.mjs verify",
-    "testing:push": "node scripts/convex-testing.mjs push"
+    "testing:push": "node scripts/convex-testing.mjs push",
+    "build:testing": "tsc --noEmit && vite build --mode development --outDir dist-v1-testing"
   },
   "keywords": [],
   "author": "",

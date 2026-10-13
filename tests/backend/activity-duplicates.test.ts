@@ -34,3 +34,4 @@ test('story titles and imaginary destinations alone are not a different game', (
   const repeat = { ...base, title: 'Ocean trip', steps: ['Describe an adventure where the blocks visit the sea.', 'Add a sentence each about the pretend journey.'] };
   expect(deduplicateActivities([story, repeat])).toEqual([story]);
 });
+test('copy and imitate use the same mirror mechanic',()=>{const first={...base,steps:['Move blocks slowly left and right while sitting.','Ask your child to copy the blocks movements.']};const second={...base,title:'Follow along',steps:['Gently move blocks side to side on the floor.','Have your child imitate your movements with blocks.']};expect(deduplicateActivities([first,second])).toEqual([first]);});

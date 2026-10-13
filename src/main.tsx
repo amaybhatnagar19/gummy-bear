@@ -17,3 +17,8 @@ document.title = path === '/app' ? 'Gummy Bear · Find fresh play ideas' : 'Gumm
 createRoot(document.getElementById('root')!).render(Page
   ? <Suspense fallback={<p role="status">Opening Gummy Bear…</p>}><Page /></Suspense>
   : <main><h1>Let’s get you back to Gummy Bear.</h1><p><a href="/">Visit the website</a> or <a href="/app">open the app</a>.</p></main>);
+
+// Register only compiled app builds; development stays free of stale source caches.
+if ((path === '/app' || path.startsWith('/app/')) && import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js', {scope:'/app'}).catch(() => {}); });
+}

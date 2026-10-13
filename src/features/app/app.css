@@ -40,3 +40,26 @@ body:has(.ga-app) { margin: 0; background: var(--gb-bg); }
 @media (prefers-reduced-motion: reduce) {
   .ga-app *, .ga-app *::before, .ga-app *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
 }
+.ga-app .ga-upload { padding:24px; border:1px dashed var(--gb-border); border-radius:24px; background:var(--gb-soft); text-align:center; margin:24px 0; }
+.ga-app .ga-upload > img { display:block; object-fit:contain; width:100%; max-height:240px; margin:0 auto 20px; }
+.ga-app .ga-upload > img[alt=""] { width:100px; }
+.ga-app .ga-thumbnail { width:120px; height:120px; object-fit:contain; border-radius:16px; }
+.ga-app .ga-actions { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:20px; }
+.ga-app label { display:block; font-weight:500; margin:16px 0 8px; }
+.ga-app input:not([type=checkbox]), .ga-app select { display:block; width:100%; min-height:48px; font:inherit; border:1px solid var(--gb-border); border-radius:12px; padding:10px 12px; margin:8px 0 20px; background:white; color:var(--gb-text); }
+.ga-app input[type=checkbox] { width:22px; height:22px; accent-color:var(--gb-brand); flex-shrink:0; }
+.ga-app .ga-check { display:flex; align-items:center; gap:12px; min-height:44px; }
+.ga-app fieldset { min-width:0; border:1px solid var(--gb-border); border-radius:16px; padding:16px; margin:24px 0; }
+.ga-app .ga-meta { display:flex; flex-wrap:wrap; gap:12px; font-size:14px; font-weight:600; color:var(--gb-brand-pressed); margin-bottom:12px; }
+.ga-app .ga-activity { border-top:4px solid var(--gb-peach,#f7d8cb); }
+.ga-app .ga-play_together { border-top-color:#d7e9df; }
+.ga-app .ga-creative_adventure { border-top-color:#d4c8e8; }
+.ga-app h3 { font-size:17px; margin:20px 0 8px; }
+.ga-app .ga-safety { background:var(--gb-soft); padding:16px; border-radius:12px; margin:20px 0; }
+.ga-app li { margin-bottom:12px; }
+.ga-app .ga-toy { display:block; text-decoration:none; }
+.ga-app .ga-recognition { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+.ga-app .ga-recognition label { flex:1; min-width:160px; }
+.ga-app summary { cursor:pointer; padding:12px 0; min-height:44px; }
+.ga-app .ga-content > a { margin-right:16px; }
+.ga-app button { overflow-wrap:anywhere; }

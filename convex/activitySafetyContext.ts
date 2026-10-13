@@ -131,3 +131,5 @@ export function assessActivitySafety(activity: Activity, age: number): SafetyAss
   if (!supervised(activity.parentRole)) reasons.add('inadequate_supervision');
   return { allowed: reasons.size === 0, reasons: [...reasons] };
 }
+
+export function activeInstructions(steps:string[]):string[] { return steps.flatMap(activeClauses); }

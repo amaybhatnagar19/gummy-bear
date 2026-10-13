@@ -2,7 +2,13 @@ import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { ConvexReactClient, useConvexAuth, useQuery } from 'convex/react';
 import { ConvexAuthProvider, useAuthActions } from '@convex-dev/auth/react';
 import { api } from '../../../convex/_generated/api';
-import { LegacyTool } from '../../LegacyApp';
+import { AuthChoices } from './AuthChoices';
+import { InstallGuide } from './InstallGuide';
+import { usePlayFlow } from './usePlayFlow';
+import { PlayJourney } from './PlayJourney';
+import { FamilyScreens, type FamilyState } from './FamilyScreens';
+import { ActivityCard } from './ActivityCard';
+import type { Id } from '../../../convex/_generated/dataModel';
 import { AccessPanel, type AccessScreen } from '../../AccessPanel';
 import { getVisitorToken } from '../../visitor';
 import { destinations, appRoute, isAppPath, mayConnectToBackend } from './navigation';
@@ -23,17 +29,26 @@ function AppShell() {
   const previousRoute = useRef(route);
   const wasAuthenticated = useRef(false);
   const [sessionEpoch, setSessionEpoch] = useState(0);
+  const [selected, setSelected] = useState<Id<'children'>[]>([]);
+  const capabilities=useQuery(api.v1Capabilities.status,{});
+  const state = useQuery(api.family.state, isAuthenticated ? {} : 'skip') as FamilyState | undefined;
+  const reminders = useQuery(api.family.reminders, isAuthenticated ? {manual:route==='rediscover'} : 'skip') ?? [];
   const page = useRef<HTMLDivElement>(null);
   const navigation = useRef<HTMLElement>(null);
   function go(href: string) {
     if (!isAppPath(href) || href === location.pathname) return;
     history.pushState(null, '', href); setPath(location.pathname);
   }
+  const flow = usePlayFlow(go);
+  useEffect(() => { if (sessionEpoch) {flow.reset();setSelected([]);} }, [sessionEpoch]);
+  useEffect(() => { if(state && selected.length) {const chosen=state.children.filter(c=>selected.includes(c._id)); if(chosen.length) flow.setAge(Math.min(...chosen.map(c=>c.age)));} }, [state,selected]);
+  useEffect(()=>{if(isAuthenticated&&capabilities?.personalData&&sessionStorage.getItem('gummy-link-requested')==='yes')void flow.link();},[isAuthenticated,capabilities?.personalData]);
   function follow(event: MouseEvent<HTMLDivElement>) {
     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     const anchor = (event.target as Element).closest('a');
     const href = anchor?.getAttribute('href');
     if (href && isAppPath(href) && !anchor?.hasAttribute('download') && (!anchor?.target || anchor.target === '_self')) {
+      if((href==='/app/sign-up'||href==='/app/sign-in')&&flow.activities.length)sessionStorage.setItem('gummy-link-requested','yes');
       event.preventDefault(); go(href);
     }
   }
@@ -47,7 +62,7 @@ function AppShell() {
     const title = destinations.find(d => appRoute(d.path) === route)?.label || 'Find fresh play ideas';
     document.title = `Gummy Bear · ${title}`;
     if (previousRoute.current !== route) {
-      const heading = page.current?.querySelector<HTMLElement>(route === 'start' ? '#photo-title' : '.ga-content h1');
+      const heading = page.current?.querySelector<HTMLElement>('.ga-content h1');
       if (heading) { heading.tabIndex = -1; heading.focus(); }
       scrollTo({ top: 0, behavior: 'instant' });
     }
@@ -81,18 +96,11 @@ function AppShell() {
     <a className="ga-skip" href={route === 'start' ? '#photo-title' : '#app-content'}>Skip to app content</a>
     {!online && <Notice title="You’re offline">You’ll need a connection to find new ideas or save changes. Keep your current page open.</Notice>}
     {accountError && <Notice title="Let’s try that again" error>{accountError}</Notice>}
-    {route !== 'start' && <header className="ga-header"><a className="ga-brand" href="/" aria-label="Gummy Bear"><img src="/brand/gummy-bear-mark.svg" width="32" height="32" alt=""/>Gummy Bear</a>{isAuthenticated ? <AppButton secondary busy={signingOut} onClick={logout}>Log out</AppButton> : <a className="ga-link-button" href="/app/sign-in">Log in</a>}</header>}
-    {/* Keep the working tool mounted across app routes so photo/results survive Back.
-        This is a compatibility bridge, removed only after the new flow is verified. */}
-    <div hidden={route !== 'start'}><LegacyTool key={sessionEpoch}/></div>
-    {route !== 'start' && <main id="app-content" className="ga-content" tabIndex={-1}>
-      {screen ? <AccessPanel screen={screen} onScreen={accessRoute} canClaimBonus={access?.canClaimBonus ?? false}/> : route === 'missing' ? <><h1>Let’s get you back to your toys</h1><p>This app page isn’t available.</p><a className="ga-link-button" href="/app">Find a play idea</a></> : isLoading ? <><h1>Opening your account</h1><Notice title="Please wait">Checking your session.</Notice></> : !isAuthenticated ? <><h1>{destinations.find(d => appRoute(d.path) === route)?.label}</h1><EmptyState title="Keep your ideas for next time" action={<a className="ga-link-button" href="/app/sign-in">Log in</a>}>You can try a play idea before creating an account.</EmptyState><a href="/app">Continue with a toy photo</a></> : <>
-        {route === 'home' && <><h1>Ready for a little playtime?</h1><p>Start with the toys you already have.</p><a className="ga-link-button" href="/app">Find a Play Idea</a><div className="ga-shortcuts"><a href="/app/toys">My Toys</a><a href="/app/activities">Activities</a></div><EmptyState title="Your next idea starts with a toy">Choose a photo to use the current play tool. Saved toys and activity history aren’t available yet.</EmptyState></>}
-        {route === 'toys' && <><h1>My Toys</h1><EmptyState title="Your toy collection starts here" action={<a className="ga-link-button" href="/app">Find an idea from a photo</a>}>Saved toy collections aren’t available yet. You can still use a toy photo to find ideas.</EmptyState></>}
-        {route === 'activities' && <><h1>Activities</h1><EmptyState title="Keep your current ideas close" action={<a className="ga-link-button" href="/app">Return to your play ideas</a>}>Your current photo and ideas stay in this open app while you move between these pages. Saved activity history isn’t available yet. Refreshing clears this temporary work.</EmptyState></>}
-        {route === 'profile' && <><h1>Profile</h1><section className="ga-card"><h2>Your account</h2><p>Child profiles, reminder preferences and privacy controls are coming next.</p><p>The current tool sends your selected photo for AI analysis. It does not save toy photographs or child profiles.</p>{access && <p>Access: {access.state === 'paid' ? 'Current paid access' : access.state === 'bonus' ? 'One-time bonus available' : 'See your existing access options'}</p>}<a href="/app/payment">View existing payment options</a></section></>}
-      </>}
-    </main>}
+    {<header className="ga-header"><a className="ga-brand" href="/" aria-label="Gummy Bear"><img src="/brand/gummy-bear-mark.svg" width="32" height="32" alt=""/>Gummy Bear</a>{isAuthenticated ? <div className="ga-actions">{access?.state!=='paid'&&<AppButton secondary onClick={()=>go('/app/payment')}>Payment</AppButton>}<AppButton secondary busy={signingOut} onClick={logout}>Log out</AppButton></div> : <AppButton secondary onClick={()=>go('/app/sign-in')}>Log in</AppButton>}</header>}
+    <main id="app-content" className="ga-content" tabIndex={-1}>
+      {screen ? <>{screen!=='payment'&&<AuthChoices/>}<AccessPanel screen={screen} onScreen={accessRoute} canClaimBonus={access?.canClaimBonus ?? false}/></> : ['start','recognize','age','ideas'].includes(route) ? <PlayJourney flow={flow} step={route} go={go} signed={isAuthenticated} policyOpen={capabilities?.personalData??false} children={selected} entries={state?.activities}/> : route==='idea' ? flow.activities[Number(path.split('/').pop())] ? <><h1>{flow.activities[Number(path.split('/').pop())].title}</h1><ActivityCard activity={flow.activities[Number(path.split('/').pop())]} id={flow.ids[Number(path.split('/').pop())]} saved={state?.activities.find(e=>e._id===flow.ids[Number(path.split('/').pop())])?.saved} favorite={state?.activities.find(e=>e._id===flow.ids[Number(path.split('/').pop())])?.favorite} intended={state?.activities.find(e=>e._id===flow.ids[Number(path.split('/').pop())])?.intended} tried={!!state?.activities.find(e=>e._id===flow.ids[Number(path.split('/').pop())])?.triedAt} rating={state?.activities.find(e=>e._id===flow.ids[Number(path.split('/').pop())])?.feedback} detail onNotice={flow.setNotice}/>{flow.notice&&<Notice title="A little update">{flow.notice}</Notice>}<a href="/app/ideas">Back to ideas</a></> : <><h1>This temporary idea isn’t here</h1><a href="/app">Find a new play idea</a></> : route === 'missing' ? <><h1>Let’s get you back to your toys</h1><p>This app page isn’t available.</p><a className="ga-link-button" href="/app">Find a play idea</a></> : isLoading ? <><h1>Opening your account</h1><Notice title="Please wait">Checking your session.</Notice></> : !isAuthenticated ? <><h1>{destinations.find(d => appRoute(d.path) === route)?.label??'Rediscover toys'}</h1><EmptyState title="Keep your ideas for next time" action={<a className="ga-link-button" href="/app/sign-in">Log in</a>}>You can try a play idea before creating an account.</EmptyState><a href="/app">Continue with a toy photo</a></> : !state ? <><h1>Opening your family space</h1><Notice title="Please wait">Loading your toys and ideas.</Notice></> : <FamilyScreens state={state} route={route} path={path} flow={flow} go={go} selected={selected} setSelected={setSelected} reminders={reminders}/>}
+    <InstallGuide/>
+    </main>
     {isAuthenticated && <nav ref={navigation} className="ga-nav" aria-label="Parent navigation">{destinations.map(d => <a key={d.path} href={d.path} aria-current={appRoute(d.path) === route ? 'page' : undefined}>{d.label}</a>)}</nav>}
   </div>;
 }

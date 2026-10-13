@@ -16,6 +16,7 @@ function mechanics(text: string): string {
   if (/\bsort\b/.test(text)) {
     for (const attribute of ['color', 'shape', 'size']) if (text.includes(attribute)) actions.push(`sort:${attribute}`);
   }
+  if (/\b(?:copy|imitate|mirror|mimic)\b/.test(text) && /\b(?:move|movement|movements)\b/.test(text)) actions.push('mirror');
   if (/\bstack\b/.test(text)) actions.push('stack');
   if (/\broll\b/.test(text)) actions.push('roll');
   if (/\b(?:story|adventure|journey)\b/.test(text) && /\b(?:tell|sentence|turns)\b/.test(text)) actions.push('story');
