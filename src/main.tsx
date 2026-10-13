@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import appStylesUrl from './style.css?url';
 
 const path = window.location.pathname.replace(/\/$/, '') || '/';
-if (path === '/app') {
+if (path === '/app' || path.startsWith('/app/')) {
   // Keep legacy CSS separate from the landing. A blocked external font must
   // never prevent the application module from opening.
   const stylesheet = document.createElement('link');
@@ -12,7 +12,7 @@ if (path === '/app') {
   document.head.appendChild(stylesheet);
 }
 const Page = path === '/' ? lazy(() => import('./features/landing/LandingPage'))
-  : path === '/app' ? lazy(() => import('./LegacyApp')) : null;
+  : path === '/app' || path.startsWith('/app/') ? lazy(() => import('./features/app/Application')) : null;
 document.title = path === '/app' ? 'Gummy Bear · Find fresh play ideas' : 'Gummy Bear · More imagination. Same toys.';
 createRoot(document.getElementById('root')!).render(Page
   ? <Suspense fallback={<p role="status">Opening Gummy Bear…</p>}><Page /></Suspense>

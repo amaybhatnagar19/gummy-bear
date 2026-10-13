@@ -8,7 +8,7 @@ import { AccessPanel, type AccessScreen } from './AccessPanel';
 import { getVisitorToken } from './visitor';
 import { presentActivities, type PresentedResult } from './activityPresentation';
 function Icon({ kind }: { kind: 'camera' | 'photo' }) { return <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">{kind === 'camera' ? <><path d="M8 5l2-2h4l2 2h4v15H4V5z"/><circle cx="12" cy="12" r="4"/></> : <><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.5"/><path d="M3 17l6-6 4 4 3-3 5 5"/></>}</svg>; }
-function App() {
+export function LegacyTool() {
   const discover = useAction(api.play.discover);
   const [visitorToken] = useState(getVisitorToken);
   const { isAuthenticated, isLoading } = useConvexAuth();
@@ -66,4 +66,4 @@ function App() {
     </section></div></>}<footer>Less toy shopping. More little moments together.</footer></main>;
 }
 const url = import.meta.env.VITE_CONVEX_URL;
-export default function LegacyApplication() { return url ? <ConvexAuthProvider client={new ConvexReactClient(url)}><App/></ConvexAuthProvider> : <main><h1>Gummy Bear needs a connection</h1><p>Set CONVEX_URL in .env.local, then restart the page.</p></main>; }
+export default function LegacyApplication() { return url ? <ConvexAuthProvider client={new ConvexReactClient(url)}><LegacyTool/></ConvexAuthProvider> : <main><h1>Gummy Bear needs a connection</h1><p>Set CONVEX_URL in .env.local, then restart the page.</p></main>; }

@@ -71,3 +71,7 @@ For each milestone: (1) inspect relevant code; (2) propose small file-level plan
 
 ## First Codex task (read-only)
 “Review AGENTS.md, PRODUCT.md, DESIGN_V1_PROPOSED.md, UX_FLOWS.md, IMPLEMENTATION_PLAN.md and AUDIT_REPORT.md. Verify the repository structure and note discrepancies. Produce a Gate 0 decision checklist and a proposed small M1 task breakdown with acceptance tests. Do not change application code, production configuration, payment/auth records or PRODUCT.md.”
+
+## Execution update — V1 application work
+
+D1.2 is the approved visual baseline. The latest owner instruction authorizes incremental V1 implementation, preserving production billing/auth records and stopping for unresolved security/privacy decisions or production changes. See V1_IMPLEMENTATION_PROGRESS.md for actual progress and verification; earlier proposal/checklists above are historical planning, not proof of implementation. Phase 1 has been implemented locally with isolated browser mocks; durable family features and live-provider/auth configuration remain incomplete.

@@ -1,0 +1,42 @@
+@font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 400 700; font-display: swap; src: url("/fonts/plus-jakarta-sans-latin.woff2") format("woff2"); }
+body:has(.ga-app) { margin: 0; background: var(--gb-bg); }
+.ga-app { font: 16px/1.6 var(--gb-font); color: var(--gb-text); background: var(--gb-bg); min-height: 100dvh; }
+.ga-app *, .ga-app *::before, .ga-app *::after { box-sizing: border-box; }
+.ga-app [hidden] { display: none !important; }
+.ga-app a { color: var(--gb-brand); text-underline-offset: 4px; }
+.ga-app :focus-visible { outline: 2px solid var(--gb-focus); outline-offset: 4px; }
+.ga-app .ga-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; width: min(100% - 32px, 1000px); margin: auto; padding: 20px 0; border-bottom: 1px solid var(--gb-border); background: transparent; border-radius: 0; box-shadow: none; }
+.ga-app .ga-brand { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--gb-text); font-size: 20px; font-weight: 700; text-decoration: none; }
+.ga-app .ga-content, .ga-recovery { width: min(100% - 32px, 720px); margin: auto; padding: 32px 0 48px; }
+.ga-app h1 { font-size: clamp(28px, 5vw, 36px); font-weight: 650; line-height: 1.2; letter-spacing: -.03em; margin: 0 0 16px; }
+.ga-app h2 { font-size: 22px; line-height: 1.3; margin: 0 0 12px; }
+.ga-app .ga-content p { color: var(--gb-muted); margin: 0 0 20px; }
+.ga-app .ga-button, .ga-app .ga-link-button { display: inline-flex; align-items: center; justify-content: center; font: 600 16px/1.5 var(--gb-font); min-height: 48px; min-width: 44px; padding: 12px 20px; border: 1px solid var(--gb-brand); border-radius: 12px; background: var(--gb-brand); color: white; text-decoration: none; cursor: pointer; text-align: center; }
+.ga-app .ga-button:hover, .ga-app .ga-link-button:hover { background: var(--gb-brand-pressed); }
+.ga-app .ga-secondary { background: white; color: var(--gb-brand); }
+.ga-app .ga-secondary:hover { background: var(--gb-soft); }
+.ga-app .ga-button:disabled { cursor: wait; opacity: .7; }
+.ga-app .ga-empty, .ga-app .ga-card { padding: 24px; margin: 24px 0; background: white; border: 1px solid var(--gb-border); border-radius: 20px; text-align: left; }
+.ga-app .ga-shortcuts { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 20px; }
+.ga-app .ga-shortcuts a, .ga-app .ga-content > a:not(.ga-link-button), .ga-app .ga-card > a { display: inline-flex; align-items: center; min-height: 44px; }
+.ga-app .ga-notice { width: min(100% - 32px, 720px); margin: 16px auto; padding: 16px; background: var(--gb-soft); border-radius: 12px; }
+.ga-app .ga-notice strong { display: block; }
+.ga-app .ga-error { color: #a12c40; background: #fff0f0; }
+.ga-app .ga-nav { display: flex; align-items: stretch; justify-content: center; gap: 4px; position: fixed; z-index: 3; inset: auto 0 0; background: white; border-top: 1px solid var(--gb-border); padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); }
+.ga-app .ga-nav a { display: flex; align-items: center; justify-content: center; min-height: 48px; min-width: 0; overflow-wrap: anywhere; padding: 8px; flex: 1; max-width: 160px; border-radius: 10px; font-weight: 600; font-size: 14px; text-decoration: none; text-align: center; }
+.ga-app .ga-nav [aria-current="page"] { color: var(--gb-brand-pressed); background: var(--gb-soft); }
+.ga-has-nav { padding-bottom: calc(var(--ga-nav-height, 80px) + 24px); }
+.ga-app .ga-skip { position: fixed; top: -100px; left: 16px; z-index: 10; padding: 12px 16px; border-radius: 12px; background: white; }
+.ga-app .ga-skip:focus { top: 12px; }
+/* Preserve the existing tool's access UI while adopting the shared palette. */
+.ga-app > div > main { max-width: 1100px; }
+@media (max-width: 540px) {
+  .ga-app .ga-header { padding-block: 16px; }
+  .ga-app .ga-brand { font-size: 18px; }
+  .ga-app .ga-header .ga-button, .ga-app .ga-header .ga-link-button { padding: 10px 12px; font-size: 14px; min-height: 44px; }
+  .ga-app .ga-content { padding-top: 24px; }
+  .ga-app .ga-empty, .ga-app .ga-card { padding: 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ga-app *, .ga-app *::before, .ga-app *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
+}
