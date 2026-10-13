@@ -22,8 +22,8 @@ body:has(.ga-app) { margin: 0; background: var(--gb-bg); }
 .ga-app .ga-notice { width: min(100% - 32px, 720px); margin: 16px auto; padding: 16px; background: var(--gb-soft); border-radius: 12px; }
 .ga-app .ga-notice strong { display: block; }
 .ga-app .ga-error { color: #a12c40; background: #fff0f0; }
-.ga-app .ga-nav { display: flex; align-items: stretch; justify-content: center; gap: 4px; position: fixed; z-index: 3; inset: auto 0 0; background: white; border-top: 1px solid var(--gb-border); padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); }
-.ga-app .ga-nav a { display: flex; align-items: center; justify-content: center; min-height: 48px; min-width: 0; overflow-wrap: anywhere; padding: 8px; flex: 1; max-width: 160px; border-radius: 10px; font-weight: 600; font-size: 14px; text-decoration: none; text-align: center; }
+.ga-app .ga-nav { display: flex; flex-wrap: wrap; align-items: stretch; justify-content: center; gap: 4px; position: fixed; z-index: 3; inset: auto 0 0; background: white; border-top: 1px solid var(--gb-border); padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); }
+.ga-app .ga-nav a { display: flex; align-items: center; justify-content: center; min-height: 48px; min-width: max-content; padding: 8px; flex: 1 0 auto; max-width: 160px; border-radius: 10px; font-weight: 600; font-size: 14px; text-decoration: none; text-align: center; }
 .ga-app .ga-nav [aria-current="page"] { color: var(--gb-brand-pressed); background: var(--gb-soft); }
 .ga-has-nav { padding-bottom: calc(var(--ga-nav-height, 80px) + 24px); }
 .ga-app .ga-skip { position: fixed; top: -100px; left: 16px; z-index: 10; padding: 12px 16px; border-radius: 12px; background: white; }
