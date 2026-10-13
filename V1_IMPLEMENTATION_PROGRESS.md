@@ -10,9 +10,9 @@ This file reports implemented and tested behavior, not the completion of the ful
 - [x] Local checkpoint b44e0d7 preserves approved D1/M1 work. No push or deployment.
 - [x] Excluded .env files, historical browser artifacts, installed skills and the unused QR duplicate from the checkpoint.
 - [x] Local browser tests use https://d1-isolated.invalid, intercepted HTTP/WebSockets, and synthetic sessions. Vitest uses the existing outbound network guard and in-memory Convex.
-- [ ] Convex team name requested from owner for `gummy-bear-v1-testing`; pending reply. See V1_ENVIRONMENT_SETUP.md.
-- [ ] Separate Convex project: not provisioned or verified. Existing .env.local declares a development deployment; this alone does not prove separation from the production project.
-- [ ] No live AI enabled, no remote database writes, no production access or deployment performed.
+- [x] Owner selected the existing Convex team; separate `gummy-bear-v1-testing` project created and verified. See V1_ENVIRONMENT_SETUP.md.
+- [x] Separate project, scoped credentials, fresh auth keys and empty database verified. Original project/env preserved.
+- [x] No live AI enabled and no original-project data/configuration writes. Existing backend was installed only in the new testing project; no frontend deployed.
 
 ## Phase checklist
 
@@ -36,9 +36,9 @@ New application module: src/features/app/Application.tsx, navigation.ts, compone
 
 Navigation intercepts only known app links; modified clicks and public links keep native browser behavior. Browser popstate restores the screen. Route headings receive focus. The existing tool remains mounted but hidden outside its route. New family screens describe their not-yet-available state; their buttons only lead to working existing flows.
 
-Local development fails closed unless the backend address is the explicit dummy browser-test address. This prevents this new development shell from using the original project's unverified connection. No .env file was modified. A real isolated URL can be allowlisted after its separate-project boundary is verified; do not remove this check merely to make the existing dev server work.
+At Phase 1, local development allowed only the dummy browser-test address. After the separately approved environment setup, it also allows the verified testing-project endpoint. The original environment was restored exactly following the CLI env-file issue; details are in V1_ENVIRONMENT_SETUP.md. Development refuses unverified connections and does not fall back to the original project.
 
-## Verification commands and results
+## Phase 1 verification commands and results (historical)
 
 - npm test: 258 guarded Vitest tests across 10 files + 3 Node tests passed.
 - npm run build: TypeScript and Vite build passed; existing nonfatal Convex Auth use-client warning remains.
@@ -53,7 +53,7 @@ Local development fails closed unless the backend address is the explicit dummy 
 
 The full V1 is not complete. Resolve project isolation and privacy/auth prerequisites before connecting durable family features:
 
-1. Confirm/provision a separate Convex project with separate credentials and only synthetic test records. Do not use the existing project's development deployment as proof of isolation. No original .env changes or production deployment.
+1. Resolved: the separately approved project, deployment and credentials are now verified; see V1_ENVIRONMENT_SETUP.md. No further feature work began after that setup.
 2. Approve retention/deletion boundaries before introducing durable child or guest content. Proposed minimum: no original photo retention; optional child nickname + approximate age + interests; exact DOB optional only if specifically approved; guest progress held in this tab until authenticated linking is secure. Separate family-data deletion from preserved financial/auth/access records. Do not claim full account deletion while retaining those records.
 3. Approve email-delivery service/configuration for email OTP and opt-in reminders. The repository currently has only password auth; no email-delivery provider or Google credentials have been verified. Preserve Password, prohibit email-only account merging, and require explicit proof of both identities before any future linkage.
 4. Hard monetary live-AI ceiling remains unapproved. Maintain 10 invited testers / 14 days / proposed 10 generations per tester/day / one concurrent request, with the existing global quota. No live provider requests until separately approved; recognition adds a provider call and must be included in spending/admission design.
@@ -63,3 +63,7 @@ The full V1 is not complete. Resolve project isolation and privacy/auth prerequi
 The initial baseline is b44e0d7. Subsequent Phase 1 changes are separately reviewable. Revert the Phase 1 commit, not a hard reset, to restore prior /app entry without discarding unrelated work. No remote rollback is needed because no functions, schemas or resources were pushed.
 
 Strict test TypeScript check caught a Node-versus-Element type mismatch in the temporary zoom-style cleanup; changed to parentNode.removeChild and reran the strict check successfully.
+
+## Environment setup completion
+
+The owner approved creating the separate testing project under the existing team. Local development is now allowlisted to that verified deployment, and guarded testing push commands use a private workspace and a deployment-scoped credential. Environment verification: 272 Vitest + 3 Node + 9 isolated browser checks passed; builds/typechecks passed. All new cloud tables are empty. No further feature implementation proceeded; phases 2–9 remain pending explicit continuation. Full details and the corrected CLI env-file issue are recorded in V1_ENVIRONMENT_SETUP.md.

@@ -1,3 +1,5 @@
+import { testingBoundary } from '../../../shared/testingDeployment.js';
+
 export const destinations = [
   { path: '/app/home', label: 'Home' },
   { path: '/app/toys', label: 'My Toys' },
@@ -20,5 +22,5 @@ export function isAppPath(href: string): boolean {
 export function mayConnectToBackend(url: string | undefined, development: boolean): boolean {
   if (!url) return false;
   try { if (new URL(url).protocol !== 'https:') return false; } catch { return false; }
-  return !development || url === 'https://d1-isolated.invalid';
+  return !development || url === 'https://d1-isolated.invalid' || url === testingBoundary.convexUrl;
 }

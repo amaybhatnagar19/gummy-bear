@@ -99,8 +99,8 @@ function AppShell() {
 
 export default function Application() {
   const url = import.meta.env.VITE_CONVEX_URL;
-  // The original development URL is not evidence of a separate project.
-  // Local UI verification uses this dummy address and network-intercepted tests.
+  // Development allows only the verified separate testing project or the
+  // dummy address used by network-intercepted browser tests.
   const isolated = mayConnectToBackend(url, import.meta.env.DEV);
   const [client] = useState(() => url && isolated ? new ConvexReactClient(url) : null);
   if (!client) return <div className="ga-app"><main className="ga-content"><h1>Local testing needs an isolated connection</h1><p>This build has not connected to a backend. Use the isolated browser-test setup while the separate development project is prepared.</p><a href="/">Visit the website</a></main></div>;

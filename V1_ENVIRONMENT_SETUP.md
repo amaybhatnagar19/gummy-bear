@@ -1,33 +1,93 @@
-# Isolated V1 environment — setup boundary
+# Gummy Bear V1 isolated testing environment
 
-Status: local mocked testing exists; separate cloud project has not been provisioned. No production deployment or database change has occurred.
+Status: setup and isolation verification complete on 14 October 2026. Feature implementation stopped after environment setup. The application has not been deployed to production or published to the testing website.
 
-## Missing input
+## Verified project boundary
 
-Confirm the Convex team that should own the separate `gummy-bear-v1-testing` project. A development deployment inside the current production project is not sufficient isolation. Do not infer project isolation from the `dev:` prefix in the current local configuration.
+| Item | Verified result |
+| --- | --- |
+| Convex team | `amay-bhatnagar`, the team owning the existing Gummy Bear project |
+| Existing project | `build-sprint-app`, project ID 3115458 |
+| New project | `gummy-bear-v1-testing`, project ID 3206274 |
+| Testing deployment | `blissful-dotterel-906`, development deployment |
+| Database isolation | Deployment metadata resolves to the new project ID, distinct from the existing project |
+| Testing credential | Newly issued deployment-scoped token, stored separately; never printed or committed |
+| Testing auth | Fresh JWT/JWKS pair; no existing application keys or authentication data copied |
+| Paid AI | No provider key configured; no live AI requests made |
+| Payments | No payment-provider configuration or records; original collection QR files blocked by isolated local Vite middleware |
 
-## Planned setup
+Public endpoint/boundary metadata is in `shared/testingDeployment.js`. It contains no credentials. [Testing dashboard](https://dashboard.convex.dev/t/amay-bhatnagar/gummy-bear-v1-testing/blissful-dotterel-906).
 
-1. Create a new project under the confirmed team, using explicit CLI project/team selection. Use a separate ignored `.env.v1-testing` file and explicit `--env-file` on every Convex command. Preserve `.env.local`.
-2. Verify project ID differs from the original project, deployment type is development, and project name/team match the confirmed selection. Abort on any discrepancy. Keep this metadata check before every remote mutation/deploy command.
-3. Set up new authentication keys only for this project. Never reuse or overwrite original keys. Do not run the current setup-auth script against its implicit default environment.
-4. Leave AI credentials absent and all live-provider modes disabled. Do not run production reporting, payment confirmation or existing live browser helpers. Do not import production accounts, personal data or payment history.
-5. Keep automated backend tests in convex-test with synthetic identities and blocked outbound network. Run only the explicitly isolated browser specs with intercepted HTTP/WebSockets; no account or payment creation.
-6. Push additive backend modules only to the verified isolated project when prerequisites are resolved. Update the local application's development allowlist to that verified isolated address. Never permit arbitrary configured URLs merely because they call themselves development.
-7. Keep real Google/OTP/email tests, paid AI and deployment separately gated. Local production builds create files only; they do not deploy.
+## Local environment and commands
 
-## Testing-access policy to verify before hiding payment UI
+- `.env.v1-testing`: separate ignored file, mode 0600; holds only this testing deployment's connection settings and scoped deployment credential.
+- `.convex-v1-testing/`: ignored private CLI workspace, mode 0700. Contains testing-only env files, copies of backend/shared source, and a dependency link. Generated bindings/configuration stay in this private workspace.
+- Original `.env.local` is preserved exactly, checked against its pre-setup SHA-256 checksum. Original production credentials were not copied into the testing environment.
+- `npm run dev`: development mode now reads the verified testing file exclusively, disables automatic loading of original Vite env files, and serves localhost port 5175. The existing server reloaded this configuration and is available at `http://127.0.0.1:5175`.
+- `npm run testing:verify`: validates local boundary and reads Convex management metadata to verify project, team and development deployment before any guarded operation.
+- `npm run testing:push`: performs the same verification, strips inherited deployment/provider/frontend overrides, and updates backend functions only in the new testing deployment. Runs Convex CLI from the private workspace using the scoped token. It does not upload frontend assets.
+- After changing backend source in a future approved task, use `testing:push` explicitly; no background backend watcher was started.
 
-10 invited testers for 14 days. Proposed allowance: 10 activity generations/day/tester, one concurrent AI request/tester, existing global 100/hour quota retained. Recognition calls also require a bounded allowance and global quota reservation. Provider failures consume request/spend allowance; failed or zero-safe generation keeps the current trial/bonus refund rule. A monetary ceiling must be approved and enforced server-side before live paid AI is enabled.
+The frontend development allowlist accepts only the verified testing endpoint or the reserved dummy endpoint used by offline browser simulations. An unexpected frontend URL override fails closed. The guarded Convex script accepts only `verify` or `push`, and rejects production flags, arbitrary commands and alternate env/deployment arguments. Its token is scoped to the new development deployment.
 
-Production access, trial, bonus, payment ledger and paid entitlements stay unchanged. Any temporary access must require verified isolated-project configuration and a server-side invitation/capability, never a frontend flag or arbitrary visitor ID. Payment UI is still present in the compatibility tool; hiding it is not implemented or authorized until this policy is verified.
+Do not use bare Convex CLI commands in the repository: the preserved original `.env.local` remains the original project's configuration. Use the guarded testing commands above. Do not run `npm run deploy`; that existing production command is unchanged and still requires explicit owner approval.
 
-## Personal-data and auth gates
+The standard production build retains the original configuration behavior. It was compiled for verification only, not served or deployed. Use the development server for isolated local checks; do not use production build artifacts as a testing preview.
 
-Before durable guest/child records: approve minimum collected fields, expiration/retention, deletion consequences and provider disclosures. Recommended original-photo default: do not store. Approximate age, optional nickname and optional interests are sufficient initially; exact DOB requires an explicit decision because PRODUCT.md mentions DOB and the latest instruction requires minimization. Session-only guest work must not be represented as persistent account history.
+## Data and credential verification
 
-Before Google/OTP configuration: choose the owner-controlled Google OAuth project and approve an email delivery provider. Password login remains available. Matching email alone must never link identities or move entitlements. No account remapping or automatic merging is approved.
+Read-only, testing-deployment-only checks confirmed zero documents in each of:
 
-## Rollback
+`users`, `authAccounts`, `authSessions`, `authRefreshTokens`, `authVerificationCodes`, `authVerifiers`, `authRateLimits`, `visitors`, `paymentEvents`, `photoRuns`, `analyticsVisitors`, `analyticsSettings`, `accessReservations`, `aiQuota`, `_storage`.
 
-Use local commit reverts for code. Since no remote changes have been made, no remote rollback is currently required. Future isolated schema changes must be additive; production release and any auth/account migration require their own verified backup and approval. Never reset the working tree or copy production data for convenience.
+No records were imported or seeded remotely. Automated backend tests seed synthetic identities in their in-memory Convex database only. The new cloud database is empty. A public read-only `access:status` query with a synthetic guest identifier returned trial access with zero uses; it did not create a visitor record.
+
+Remote configured variable names were checked without exposing values: only `JWT_PRIVATE_KEY`, `JWKS`, `SITE_URL` were present. No paid AI, email-delivery, Google or payment provider was configured. Convex's built-in URLs identify this new deployment. Fresh auth keys were generated for testing, and the temporary key-material file was removed.
+
+The existing project's metadata was read only to identify its team/project. No existing account, authentication, payment or personal records were read or copied. No functions, schema, credentials or data were written to the original project.
+
+## Automated-test isolation
+
+- Vitest retains setup-before-import outbound blocking; synthetic one-use AI provider mocks only. Tests do not connect to either cloud project.
+- Default Playwright configuration includes only `d1.spec.ts`, `app-shell.spec.ts`, and `environment.spec.ts`, and rejects non-local page URLs. Existing live/state-changing specs remain in the repository but are excluded from the default run.
+- Browser backend simulation now derives its URL and auth-storage namespace from the verified testing deployment. Unexpected Convex destinations are blocked and fail the tests. Testing HTTP/WebSockets are intercepted, with no backend mutations or paid AI requests.
+- The previous reserved dummy endpoint remains available as an explicit offline-test override; arbitrary backend overrides are rejected.
+- QR denial covers normal, public, encoded and direct filesystem paths. Serving `.env.v1-testing` is also verified to return 403. Existing payment source/assets and production billing behavior remain unchanged.
+
+## Commands executed and results
+
+| Verification | Result |
+| --- | --- |
+| Management metadata lookup, explicit project creation and development deployment authorization | Same team; distinct testing project/deployment verified |
+| New scoped testing credential and fresh testing-only auth configuration | Succeeded; values withheld |
+| `npm run testing:verify` | Passed |
+| `npm run testing:push` from private copied workspace | Passed; existing backend/schema installed only in testing |
+| Testing-only CLI table reads, limit 1, and synthetic public status query | All listed tables empty; query passed |
+| `npm test` | 272 guarded Vitest + 3 Node tests passed |
+| `GUMMY_TEST_URL=http://127.0.0.1:5175 ./node_modules/.bin/playwright test` | 9 isolated browser tests passed; no live specs executed |
+| `npm run build` | Passed; existing nonfatal Convex Auth use-client warning remains |
+| Strict separate test/config TypeScript check | Passed |
+| Ignore rules and permissions | Testing env/workspace ignored; 0600 / 0700 verified |
+| Protected original-file checksums | Original env, auth, payment, schema, AI source, PRODUCT.md and lockfile unchanged |
+
+Strict TypeScript command:
+
+```
+./node_modules/.bin/tsc --ignoreConfig --noEmit --target ES2022 --module ESNext --moduleResolution Bundler --jsx react-jsx --strict --skipLibCheck --types node,vite/client vitest.config.ts tests/setup/no-network.ts tests/backend/*.test.ts tests/browser/*.ts playwright.config.ts
+```
+
+### Setup issues corrected
+
+1. Convex provisioning initially returned a legacy-format admin credential. The fail-closed prefix check rejected it; an official deployment-scoped token was created and saved without printing it.
+2. The first CLI push unexpectedly rewrote the repository's `.env.local` despite `--env-file`. Its original deployment/project/URLs were restored exactly and the saved checksum matched. No original remote project was changed. Subsequent CLI operations run in the private workspace; later checks confirmed the original file remained unchanged.
+3. Symlinking backend source into that workspace caused a bundle error and placeholder generated TypeScript files to shadow existing bindings. Changed to copied source, removed only the new tool-generated placeholders, restored original bindings, and verified a successful isolated push/build/typecheck. No application backend logic was rewritten.
+4. A new `npm run dev` process found port 5175 occupied by the existing server, which had already reloaded the new testing configuration. Browser checks verified that listener selects the testing project.
+5. Empty-table CLI output is a specific empty-table message rather than JSON `[]`; the read-only verification was corrected to recognize that documented installed-CLI behavior.
+
+## Scope, pending gates and rollback
+
+No additional V1 feature work was performed. No real accounts were created, no live sign-in/provider tests ran, no payments were collected, and no paid AI request was enabled. Installation, real-phone and real-provider verification remain future work.
+
+Use synthetic data only in this environment. The temporary invited-tester access policy and payment-UI hiding remain pending verification/approval; the existing trial/bonus/payment logic was not changed. Before enabling live AI: approve a hard monetary budget and implement server-side daily/concurrency/spending controls alongside the existing global quota. Before collecting durable child/guest data: resolve retention/deletion policy. Google/OTP and email reminders require separate provider/configuration approval.
+
+Rollback: revert the setup code/config commit and stop the local testing server; original `.env.local` is already preserved. Keep the separate testing project as an isolated checkpoint, or revoke its new token/archive it only with owner approval. Do not delete or reset the original project or revoke its credentials. Do not remove the testing environment and silently fall back to the original project; development is designed to fail closed when testing configuration is absent.

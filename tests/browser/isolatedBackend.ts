@@ -1,4 +1,10 @@
 import type { Page } from '@playwright/test';
+import { testingBoundary } from '../../shared/testingDeployment.js';
+
+export const testingBackendURL = process.env.GUMMY_TEST_BACKEND_URL || testingBoundary.convexUrl;
+if (![testingBoundary.convexUrl, 'https://d1-isolated.invalid'].includes(testingBackendURL)) throw new Error('Browser tests refuse an unverified backend.');
+export const testingStorageNamespace = testingBackendURL.replace(/[^a-zA-Z0-9]/g, '');
+const expectedHost = new URL(testingBackendURL).hostname;
 
 // Synthetic protocol replies only. This helper never connects to a remote server.
 export async function isolate(page: Page, account: 'guest' | 'paid' | 'payment' = 'guest') {
@@ -7,6 +13,11 @@ export async function isolate(page: Page, account: 'guest' | 'paid' | 'payment' 
   await page.route('**/*', async route => {
     const url = new URL(route.request().url());
     if (['127.0.0.1', 'localhost'].includes(url.hostname)) return route.continue();
+    if (url.hostname !== expectedHost) {
+      await route.abort();
+      if (url.hostname.endsWith('.convex.cloud') || url.hostname.endsWith('.convex.site')) throw new Error('Browser attempted an unapproved Convex backend; request blocked.');
+      return;
+    }
     // Serve synthetic refresh responses only; never connect to a backend.
     if (url.pathname === '/api/action' && account !== 'guest') {
       const body = route.request().postDataJSON();
@@ -16,19 +27,20 @@ export async function isolate(page: Page, account: 'guest' | 'paid' | 'payment' 
     return route.abort();
   });
   if (account !== 'guest') {
-    await page.addInitScript(({ token }) => {
+    await page.addInitScript(({ token, namespace }) => {
       // Match the real provider's URL namespace, without reading a real token.
-      const key = 'httpsd1isolatedinvalid';
+      const key = namespace;
       if (!sessionStorage.getItem('d1-seeded')) {
         localStorage.setItem(`__convexAuthJWT_${key}`, token);
         localStorage.setItem(`__convexAuthRefreshToken_${key}`, 'synthetic-d1-refresh');
         sessionStorage.setItem('d1-seeded', 'yes');
       }
-    }, { token });
+    }, { token, namespace: testingStorageNamespace });
   }
   await page.routeWebSocket(/.*/, socket => {
     const url = new URL(socket.url());
     if (['127.0.0.1', 'localhost'].includes(url.hostname)) { socket.connectToServer(); return; }
+    if (url.hostname !== expectedHost) { socket.close(); throw new Error('Unapproved backend socket blocked.'); }
     // Exercise the unchanged real Convex/Auth client against a local simulation.
     let version = { querySet: 0, identity: 0, ts: 'AAAAAAAAAAA=' };
     let clock = 0;

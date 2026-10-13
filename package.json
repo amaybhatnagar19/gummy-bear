@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "test": "node --experimental-strip-types --test tests/rules.test.ts && vitest run",
-    "deploy": "npx @convex-dev/static-hosting deploy"
+    "deploy": "npx @convex-dev/static-hosting deploy",
+    "testing:verify": "node scripts/convex-testing.mjs verify",
+    "testing:push": "node scripts/convex-testing.mjs push"
   },
   "keywords": [],
   "author": "",

@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { isolate } from './isolatedBackend';
+import { isolate, testingStorageNamespace } from './isolatedBackend';
 
 // Run only this file. Other browser specs call live AI and mutate account data.
-const testUrl = process.env.GUMMY_TEST_URL || 'http://127.0.0.1:5173';
+const testUrl = process.env.GUMMY_TEST_URL || 'http://127.0.0.1:5175';
 if (!['127.0.0.1', 'localhost'].includes(new URL(testUrl).hostname)) throw new Error('D1 checks require localhost.');
 const fixture = readFileSync('tests/fixtures/teddy.jpg');
 
@@ -82,10 +82,10 @@ test('synthetic signed-in sessions retain controls and payment paths without liv
   const calls = await isolate(page, 'payment');
   await page.goto('/app');
   await expect(page.getByRole('button', { name: 'Log out', exact: true })).toBeVisible();
-  const before = await page.evaluate(() => localStorage.getItem('__convexAuthJWT_httpsd1isolatedinvalid'));
+  const before = await page.evaluate(namespace => localStorage.getItem(`__convexAuthJWT_${namespace}`), testingStorageNamespace);
   await page.getByRole('link', { name: 'Gummy Bear', exact: true }).click();
   await expect(page).toHaveURL(/\/$/);
-  expect(await page.evaluate(() => localStorage.getItem('__convexAuthJWT_httpsd1isolatedinvalid'))).toBe(before);
+  expect(await page.evaluate(namespace => localStorage.getItem(`__convexAuthJWT_${namespace}`), testingStorageNamespace)).toBe(before);
   await page.getByRole('link', { name: 'Get Started', exact: true }).first().click();
   await page.reload();
   await expect(page.getByRole('button', { name: 'Log out', exact: true })).toBeVisible();
