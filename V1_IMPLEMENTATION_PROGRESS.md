@@ -67,3 +67,7 @@ Strict test TypeScript check caught a Node-versus-Element type mismatch in the t
 ## Environment setup completion
 
 The owner approved creating the separate testing project under the existing team. Local development is now allowlisted to that verified deployment, and guarded testing push commands use a private workspace and a deployment-scoped credential. Environment verification: 272 Vitest + 3 Node + 9 isolated browser checks passed; builds/typechecks passed. All new cloud tables are empty. No further feature implementation proceeded; phases 2–9 remain pending explicit continuation. Full details and the corrected CLI env-file issue are recorded in V1_ENVIRONMENT_SETUP.md.
+
+## Continuous V1 execution — quality checkpoint
+
+14 October 2026: verified the isolated project again; baseline 272 guarded tests + 3 Node tests/build passed. Checkpoint f3afcad. Added five quality regressions (one reproduced verbose filler before fix), filtered verbose filler, preserved legacy successful results during retries, and removed provider error-message logging. 277 guarded + 3 Node tests/build passed. Durable real personal-data collection, email providers and paid AI remain closed pending their explicit approval; independent implementation continues.

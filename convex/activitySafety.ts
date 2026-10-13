@@ -8,6 +8,7 @@ export function isSuitableActivity(activity: Activity, age: number): boolean {
   const combined = steps.join(' ');
   if (activity.toyReferences.some(toy => !(` ${combined} `).includes(` ${normalize(toy)} `))) return false;
   const concrete = /\b(?:tell|name|wave|count|sort|group|stack|move|roll|match|choose|point|hold|place|imagine|pretend|describe|build|take turns)\b/;
+  if (steps.every(step => /\b(?:have fun|enjoy|quality play time|wonderful possibilities)\b/.test(step))) return false;
   if (!steps.some(step => concrete.test(step)) || combined.split(' ').length < 10) return false;
   return true;
 }
