@@ -52,5 +52,6 @@ export const markPaid = internalMutation({ args: { email: v.string() }, returns:
   if (users.length !== 1) throw new ConvexError(users.length ? 'More than one account has this email. Check the accounts before confirming payment.' : 'No account has this email. Ask the parent to sign up first.');
   const paidFrom = Date.now(), paidUntil = nextMonth(paidFrom);
   await ctx.db.patch(users[0]._id, { paidFrom, paidUntil });
+  await ctx.db.insert('paymentEvents', { email: normalized, paidFrom, paidUntil });
   return { email: normalized, paidFrom, paidUntil };
 }});

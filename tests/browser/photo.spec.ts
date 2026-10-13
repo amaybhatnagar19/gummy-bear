@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { writeFileSync, mkdirSync } from 'node:fs';
+import { labelTestVisitor } from './testVisitor';
 test('parent picks one real toy photo and requests three ideas', async ({ page }) => {
   const proofDir = process.env.GUMMY_TEST_URL ? '.impeccable/review/live' : '.impeccable/review';
   mkdirSync(proofDir, { recursive: true });
@@ -8,6 +9,7 @@ test('parent picks one real toy photo and requests three ideas', async ({ page }
     try { const message = JSON.parse(String(frame.payload)); if (message.type === 'ActionResponse') actionResponse = message; } catch {}
   }));
   await page.goto('/');
+  await labelTestVisitor(page);
   await expect(page.getByRole('button', { name: 'Find play ideas', exact: true })).toBeDisabled();
   await expect(page.getByText('Old toys. New possibilities.')).toBeVisible();
   const inputs = page.locator('input[type=file]');

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ConvexReactClient, useAction, useQuery, useConvexAuth } from 'convex/react';
+import { ConvexReactClient, useAction, useQuery, useMutation, useConvexAuth } from 'convex/react';
 import { ConvexAuthProvider, useAuthActions } from '@convex-dev/auth/react';
 import { ConvexError } from 'convex/values';
 import { api } from '../convex/_generated/api';
@@ -15,6 +15,8 @@ function App() {
   const [visitorToken] = useState(getVisitorToken);
   const { isAuthenticated, isLoading } = useConvexAuth();
   const { signOut } = useAuthActions();
+  const identifyVisitor = useMutation(api.analytics.identifyVisitor);
+  useEffect(() => { if (isAuthenticated) void identifyVisitor({visitorToken}).catch(() => {}); }, [isAuthenticated, identifyVisitor, visitorToken]);
   const access = useQuery(api.access.status, isLoading ? 'skip' : { visitorToken });
   const [screen, setScreen] = useState<AccessScreen>('tool');
   useEffect(() => {

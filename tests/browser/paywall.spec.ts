@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
+import { labelTestVisitor } from './testVisitor';
 test('two free turns, signup, one account bonus, manual payment, and returning login', async ({ page }) => {
   test.setTimeout(240000);
   if (process.env.GUMMY_TEST_URL) test.skip(true, 'Payment test accounts are created only on development.');
@@ -11,6 +12,7 @@ test('two free turns, signup, one account bonus, manual payment, and returning l
     try { const m = JSON.parse(String(frame.payload)); if (m.type === 'ActionResponse') replies.push(m); } catch {}
   }));
   await page.goto('/');
+  await labelTestVisitor(page);
   await page.getByLabel('Choose one toy photo').setInputFiles('tests/fixtures/teddy.jpg');
   async function play() {
     const before = replies.length;

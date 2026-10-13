@@ -89,7 +89,7 @@ Successful replies are saved verbatim to `.impeccable/review/raw-ai-output.txt`.
 - `gpt-6-luna`, low reasoning, low image detail, at most 500 output tokens including reasoning, no automatic retries, 60-second provider timeout.
 - The browser redraws one photo to JPEG, removes metadata, limits its longest edge to 768 pixels and its encoded length to 350,000 characters before sending.
 - An internal, atomic Convex mutation reserves each call against a global rolling-hour quota. The 101st call is blocked, including concurrent requests. Failed provider calls still consume a reservation.
-- For access, Convex saves browser counts, auth/account records, payment dates, bonus flags and temporary reservations. For AI requests, only bounded quota timestamps are saved; photos and play replies are not written to app storage. The OpenAI request uses `store: false`; provider processing rules still apply.
+- Convex saves access/account records and photo-run metadata (time, existing anonymous browser ID, authenticated email when present, and success/completion flags). Photos and play replies are never written to app storage. The OpenAI request still uses `store: false`; provider processing rules apply.
 - Bad input, missing configuration, timeout, rate limit, unclear toys and incomplete output produce recoverable messages. No result is invented when the provider fails.
 
 ## Hosting
@@ -113,3 +113,19 @@ GUMMY_TEST_URL=https://sensible-avocet-370.convex.site REQUIRE_LIVE_AI=1 npx pla
 ```
 
 Live proof files are saved separately under `.impeccable/review/live/`.
+
+## Production daily report
+
+Run this one command in Terminal:
+
+```sh
+cd ~/build-sprint-app && node --experimental-strip-types scripts/production-report.mjs
+```
+
+The script hardcodes production (`--prod`), reads internal queries in bounded pages, and prints JSON only. It does not submit photos, change payment access or modify data. Days are in IST (Asia/Kolkata). Photo runs count requests allowed past the access check, including failures; rejected paywall clicks are not photo runs. Unique visitors count distinct browser IDs with an allowed request. Signups use account creation dates. Paid users count distinct emails with a payment confirmed that day; new confirmations have their own durable events, while older records supply only their latest known payment date.
+
+Reports exclude `amay.bhatnagar@gmail.com`, email addresses on example.com/org/net, test prefixes deploy-test-/paywall-test-/codex-test-/test-/test+, and browser IDs marked as tests. Automated tests label their browser before submitting a photo. Owner/test sign-in links that same browser to the exclusion, so its earlier recorded guest runs are also excluded. An anonymous human test in a separate browser cannot be recognized automatically: mark its ID with the internal `analytics:markTestVisitor` mutation. Legitimate anonymous users are not excluded merely because they are anonymous.
+
+The recording start is printed in the report. Earlier days show `null` for photo metrics; the start day is explicitly partial. Older photo runs cannot be reconstructed and are not fabricated. Current-day figures cover only the report time. Pending runs remain distinguishable from successful/failed runs; interrupted runs are marked failed after 90 seconds.
+
+No photo, image URL, base64 content, toy names, play ideas or passwords are saved in the new analytics tables. An authenticated legacy caller without a browser token is represented by an account-based anonymous fallback ID to keep its call working; current pages always supply the existing browser token. Signup and paywall behavior, model settings and the OpenAI key are unchanged.

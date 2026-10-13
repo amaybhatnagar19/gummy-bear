@@ -9,6 +9,8 @@
  */
 
 import type * as access from "../access.js";
+import type * as analytics from "../analytics.js";
+import type * as analyticsRules from "../analyticsRules.js";
 import type * as auth from "../auth.js";
 import type * as http from "../http.js";
 import type * as ideas from "../ideas.js";
@@ -25,6 +27,8 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   access: typeof access;
+  analytics: typeof analytics;
+  analyticsRules: typeof analyticsRules;
   auth: typeof auth;
   http: typeof http;
   ideas: typeof ideas;
