@@ -146,7 +146,7 @@ The compiled testing preview verifies worker readiness, image loading and offlin
 
 **Not ready to deploy.** The full V1 cannot be marked complete until privacy/consent, account deletion boundaries, real AI/provider integration, email delivery and device signoff are resolved. Implemented core paths are available for deterministic isolated verification; blocked features are explicit.
 
-Keep the final local checkpoint and the closed testing gates. Use targeted Git reverts, not hard reset/stash/force push. Leave additive tables intact while testing source reversions; do not remove populated schemas or delete account/payment/auth records. Original environment and unrelated untracked work remain preserved. Earlier intermediate checkpoints contain superseded gates; do not activate them as a shortcut.
+Keep local checkpoint `1893d07` and the closed testing gates. Use targeted Git reverts, not hard reset/stash/force push. Leave additive tables intact while testing source reversions; do not remove populated schemas or delete account/payment/auth records. Original environment and unrelated untracked work remain preserved. Earlier intermediate checkpoints contain superseded gates; do not activate them as a shortcut.
 
 Before a production release: approve the remaining decisions; verify actual isolated providers with bounded/synthetic-or-consented data; review backups/schema compatibility/identity preservation; approve production-specific gate/configuration changes and payment presentation; then explicitly authorize the existing Convex static-hosting `npm run deploy` operation. No deployment command was executed here. Git push is not a deployment. Signing-key rotation or account remapping is not a rollback strategy.
 

@@ -8,7 +8,7 @@
 - `f3afcad`: reversible checkpoint before this execution; approved landing and M1 baseline preserved.
 - `cc8e2d5`: initial quality/recovery improvement.
 - `8bea78d`: initial connected journey and gated family features. Later hardening supersedes this checkpoint; do not activate its earlier gate implementation.
-- Final hardening/verification checkpoint follows this report update.
+- `1893d07`: final guarded core, isolated verification and documented activation blockers.
 
 Pre-existing untracked `.agents/`, `.impeccable/review/`, `skills-lock.json` and `public/payments/upi-qr.png.jpg` were preserved and excluded from checkpoints.
 
