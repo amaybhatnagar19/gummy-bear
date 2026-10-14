@@ -125,7 +125,7 @@ Next owner decision: resolve the financial/operational retention basis and ident
 
 ## Rollback and file changes
 
-Starting checkpoint: `45fdb4f`; final working checkpoint recorded in progress/history. Changes are local. Revert only this task's commits/files, preserving unrelated untracked work and closed gates. Nothing remote needs reversal. If later installed, leave additive tables and pending requests intact until a reviewed rollback can preserve deletion blocking/progress; do not reintroduce deleted family records from backups or activate collection by reverting the version guard. Git rollback cannot recover erased data.
+Starting checkpoint: `45fdb4f`; verified working checkpoint: `7c735bf`. Changes are local. Revert only this task's commits/files, preserving unrelated untracked work and closed gates. Nothing remote needs reversal. If later installed, leave additive tables and pending requests intact until a reviewed rollback can preserve deletion blocking/progress; do not reintroduce deleted family records from backups or activate collection by reverting the version guard. Git rollback cannot recover erased data.
 
 Created: `shared/privacy.ts`, `convex/privacyAccess.ts`, `convex/privacy.ts`, `src/features/app/PrivacySettings.tsx`, `tests/backend/privacy.test.ts`, `tests/backend/photo-privacy.test.ts`, `tests/browser/privacy.spec.ts`, this report.
 
