@@ -1,7 +1,8 @@
 import { ConvexError } from 'convex/values';
 import { testingBoundary } from '../shared/testingDeployment.js';
+import { PRIVACY_VERSION } from '../shared/privacy';
 export function dataPolicyOpen() {
-  return process.env.CONVEX_CLOUD_URL === testingBoundary.convexUrl && process.env.V1_DATA_POLICY_APPROVED === 'true';
+  return process.env.CONVEX_CLOUD_URL === testingBoundary.convexUrl && process.env.V1_DATA_POLICY_APPROVED === 'true' && process.env.V1_DATA_POLICY_VERSION === PRIVACY_VERSION;
 }
 export function requireDataPolicy() {
   if (!dataPolicyOpen()) throw new ConvexError('Saving family information is paused until the retention and deletion policy is approved. Your current ideas can stay in this tab.');

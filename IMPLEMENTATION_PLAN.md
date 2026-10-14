@@ -91,3 +91,9 @@ Remaining dependency order:
 5. Prepare an explicit production activation/rollback plan; obtain production and payment-presentation approvals before the existing Convex hosting deployment command is used.
 
 No routine phase approval is needed for the already authorized implementation, but these provider/privacy/production decisions remain genuine blockers. No unapproved live feature should be marked complete.
+
+## Privacy/deletion follow-up — approved product rules, activation blocked
+
+Implement locally the parent's approved no-original-photo retention, label+age-only requirement, optional DOB/interests and family retention until explicit removal. Version acknowledgment/contact choices and keep guest expiry at 24 hours. Build owner-only bounded removal with explicit confirmation, persistent progress and retries. An account request stops after family removal at pending policy, without deleting identity/sessions or changing financial records. Details and remaining owner decisions are in [PRIVACY_AND_DELETION_REPORT.md](PRIVACY_AND_DELETION_REPORT.md).
+
+Completed source/test work does not authorize deployment. No isolated backend update, production change, real-data collection or live AI activation in this follow-up. Next dependencies: approve legal/operational/financial retention and identity-finalization plan, separately authorize isolated source installation/finalization testing, verify complete deletion and processor/backup behavior, then approve any real collection. AI budget/provider activation remains separately prohibited.

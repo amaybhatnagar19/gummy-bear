@@ -6,6 +6,8 @@ import { activityValidator, validateAndFilterActivities } from './activityRespon
 import { activitiesRepeat } from './activityDuplicates';
 import { inviteDigest } from './testingAccess';
 import { requireDataPolicy } from './v1Policy';
+import { PRIVACY_VERSION, GUEST_DRAFT_MS } from '../shared/privacy';
+import { requireCollectionConsent, requireNoDeletion } from './privacyAccess';
 import { childAge } from '../shared/v1';
 async function digest(capability: string) {
   if (!/^[a-f0-9]{64}$/.test(capability)) throw new ConvexError('This guest session cannot be linked.');
@@ -16,18 +18,23 @@ export const retain = mutation({
   args: {
     capability: v.string(),
     invitation: v.string(),
+    privacyVersion: v.string(),
     age: v.number(),
     activities: v.array(activityValidator)
   },
   returns: v.null(),
   handler: async (ctx, args) => {
     requireDataPolicy();
+    if (args.privacyVersion !== PRIVACY_VERSION) throw new ConvexError('Review the current temporary guest privacy information before saving.');
+    const signed = await getAuthUserId(ctx);
+    if (signed) await requireNoDeletion(ctx, signed);
     childAge(args.age);
     const inviteHash=await inviteDigest(args.invitation);
     const invite=await ctx.db.query('testingInvites').withIndex('by_digest',q=>q.eq('capabilityDigest',inviteHash)).unique();
     if(!invite||invite.expiresAt<=Date.now()||(invite.owner&&invite.owner!==await getAuthUserId(ctx)))throw new ConvexError('This testing invitation is unavailable.');
     const hash = await digest(args.capability);
     const existing = await ctx.db.query('guestProgress').withIndex('by_digest', q => q.eq('digest', hash)).unique();
+    if (existing && existing.expiresAt <= Date.now()) throw new ConvexError('This guest draft has expired. Clear temporary work and start a new session.');
     if (existing?.claimedBy) throw new ConvexError('This guest session has already been linked.');
     const toys = [...new Set(args.activities.flatMap(a => a.toyReferences))];
     const activities = validateAndFilterActivities({
@@ -39,11 +46,16 @@ export const retain = mutation({
     const data = {
       inviteId:invite._id,
       digest: hash,
-      expiresAt: Date.now() + 86400000,
+      expiresAt: existing?.expiresAt ?? Date.now() + GUEST_DRAFT_MS,
+      privacyVersion: PRIVACY_VERSION,
+      acknowledgedAt: existing?.acknowledgedAt ?? Date.now(),
       age: args.age,
       activities
     };
-    if (existing) await ctx.db.patch(existing._id, data);else await ctx.db.insert('guestProgress', data);
+    if (existing) await ctx.db.patch(existing._id, data);else {
+      await ctx.db.insert('guestProgress', data);
+      await ctx.scheduler.runAfter(GUEST_DRAFT_MS, internal.guest.expire, {});
+    }
     return null;
   }
 });
@@ -58,9 +70,11 @@ export const claim = mutation({
     requireDataPolicy();
     const user = await getAuthUserId(ctx);
     if (!user || !await ctx.db.get(user)) throw new ConvexError('Sign in before linking your ideas.');
+    await requireCollectionConsent(ctx, user);
     const hash = await digest(capability);
     const guest = await ctx.db.query('guestProgress').withIndex('by_digest', q => q.eq('digest', hash)).unique();
     if (!guest || guest.expiresAt <= Date.now()) throw new ConvexError('These temporary guest ideas have expired.');
+    if (guest.privacyVersion !== PRIVACY_VERSION) throw new ConvexError('This draft does not have current temporary privacy acknowledgment. Clear it and start again.');
     if (guest.claimedBy) {
       if (guest.claimedBy !== user) throw new ConvexError('This guest session belongs to another account.');
       return 0;
@@ -91,7 +105,7 @@ export const expire = internalMutation({
   args: {},
   returns: v.number(),
   handler: async ctx => {
-    const rows = await ctx.db.query('guestProgress').withIndex('by_expiry', q => q.lt('expiresAt', Date.now())).take(100);
+    const rows = await ctx.db.query('guestProgress').withIndex('by_expiry', q => q.lte('expiresAt', Date.now())).take(100);
     for (const row of rows) await ctx.db.delete(row._id);
     if (rows.length === 100) await ctx.scheduler.runAfter(0, internal.guest.expire, {});
     return rows.length;

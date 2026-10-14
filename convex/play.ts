@@ -32,8 +32,9 @@ export const generate = internalAction({
       });
     } catch { throw new ConvexError('The connection took too long. Please try again.'); }
     if (!response.ok) {
-      const failure = await response.json().catch(() => ({}));
-      console.error('OpenAI request rejected', { status: response.status, code: failure.error?.code, type: failure.error?.type });
+      // Provider error fields may echo request content. Log only our fixed
+      // event name and numeric HTTP status, never the returned body or image.
+      console.error('OpenAI request rejected', { status: response.status });
       throw new ConvexError(response.status === 401 ? 'The owner needs to check the OpenAI key in Convex.' : response.status === 429 ? 'The AI service is busy or out of credit. Please try again later.' : 'The AI service could not read this photo. Please try again.');
     }
     const body = await response.json().catch(() => { throw new ConvexError('The answer was incomplete. Please try again with a clearer photo.'); });

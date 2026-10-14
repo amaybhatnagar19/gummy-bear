@@ -1,5 +1,7 @@
 # Gummy Bear V1 implementation progress
 
+Latest follow-up: privacy and deletion source work completed within the safe scope; see [PRIVACY_AND_DELETION_REPORT.md](PRIVACY_AND_DELETION_REPORT.md). Product decisions on no retained photos, minimal child fields and parent-controlled family retention are approved. Legal/operational/financial retention and identity finalization are still pending. **No follow-up deployment or activation occurred.**
+
 14 October 2026. Current status: integrated isolated implementation, with important activation/release blockers. No production deployment, production data access, real personal-data collection or paid AI calls.
 
 ## Checkpoints
@@ -48,3 +50,16 @@ Latest guarded suite: 325 Vitest tests across 20 files + 3 Node tests passed. St
 See V1_IMPLEMENTATION_REPORT.md for completion matrix, risks, exact files, cost assumptions and rollback/deployment prerequisites.
 
 Signed-in generation now commits suggestions on the server before responding, with matching activity IDs. Regression verifies later duplicate rejection without browser memory. Invited accounts cannot multiply quotas using multiple guest codes. Client processing stays disabled while privacy/budget readiness is false; no photos are sent by the UI in that state.
+
+## Privacy/deletion follow-up — 14 October 2026
+
+- [x] Preserve original photos only on the parent's device; temporary reduced preview cleanup and no photo resend after confirmation. Canvas/bitmap resources released, provider error-log payloads removed.
+- [x] Preferred label and age only required; optional DOB/interests removable; ownership checks retained.
+- [x] Current privacy acknowledgment, separate phone/future messaging choices and optional guest-draft choice; global collection gate remains closed and now requires an exact approved version.
+- [x] Fixed 24-hour guest deadline with deadline/hourly cleanup and no renewal of expired proof. No inactivity expiry for family records.
+- [x] Individual record removal, bounded/resumable family removal and parent-confirmed account request with honest pending status and write blocking.
+- [ ] Irreversible auth identity/session removal and financial/operational-reference handling: not implemented, awaiting approved basis and explicit finalization approval.
+- [ ] Logs/backups/processor retention, request-evidence retention, published legal notice and collection activation: unresolved; no flag/provider change.
+- [ ] Isolated cloud installation of follow-up source/schema: not performed because owner prohibited deployment in this task.
+
+Final local verification: 345 guarded Vitest tests/22 files + 3 Node tests, 15 network-isolated browser checks, strict application/tests/config TypeScript and production/testing builds passed. All data synthetic; only testing metadata/capability reads touched the cloud. No paid AI, identity deletion, production access or remote writes. Starting checkpoint `45fdb4f`; final checkpoint recorded in Git history.

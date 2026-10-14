@@ -25,6 +25,8 @@ import type * as http from "../http.js";
 import type * as ideas from "../ideas.js";
 import type * as paymentRules from "../paymentRules.js";
 import type * as play from "../play.js";
+import type * as privacy from "../privacy.js";
+import type * as privacyAccess from "../privacyAccess.js";
 import type * as quota from "../quota.js";
 import type * as recognition from "../recognition.js";
 import type * as rules from "../rules.js";
@@ -57,6 +59,8 @@ declare const fullApi: ApiFromModules<{
   ideas: typeof ideas;
   paymentRules: typeof paymentRules;
   play: typeof play;
+  privacy: typeof privacy;
+  privacyAccess: typeof privacyAccess;
   quota: typeof quota;
   recognition: typeof recognition;
   rules: typeof rules;

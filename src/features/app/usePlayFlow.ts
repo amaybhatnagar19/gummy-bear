@@ -1,10 +1,11 @@
 import { useAction, useMutation } from 'convex/react';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ConvexError } from 'convex/values';
 import { api } from '../../../convex/_generated/api';
 import type { Activity } from '../../../shared/activityContract';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { shrinkPhoto } from '../../photo';
+import { PRIVACY_VERSION } from '../../../shared/privacy';
 import { getVisitorToken } from '../../visitor';
 export function errorMessage(error: unknown) {
   if(error instanceof ConvexError&&String(error.data)==='SIGNUP_REQUIRED')return 'You’ve used your two guest turns. Your previous ideas are still here. Sign in to keep them when account creation is enabled.';
@@ -19,6 +20,8 @@ export function usePlayFlow(go: (path: string) => void) {
     record = useMutation(api.family.recordSuggestions),
     retain = useMutation(api.guest.retain),
     claim = useMutation(api.guest.claim), discard=useMutation(api.guest.discard);
+  const [photoConsent, setPhotoConsent] = useState(false);
+  const [temporaryConsent, setTemporaryConsent] = useState(false);
   const [resultAge,setResultAge]=useState<number|undefined>();
   const [photoUploadedAt,setPhotoUploadedAt]=useState<number|undefined>();
   const [toyIds, setToyIds] = useState<Id<'toys'>[]>([]);
@@ -33,8 +36,15 @@ export function usePlayFlow(go: (path: string) => void) {
   const previous = useRef<Activity[]>([]),
     sequence = useRef(0);
   const [capability,setCapability] = useState(() => sessionStorage.getItem('gummy-guest-capability') ?? Array.from(crypto.getRandomValues(new Uint8Array(32)), b => b.toString(16).padStart(2, '0')).join(''));
+  useEffect(() => {
+    const leave = () => setPhoto('');
+    addEventListener('pagehide', leave);
+    return () => removeEventListener('pagehide', leave);
+  }, []);
+  function confirmToys() { setPhoto(''); go('/app/age'); }
   async function select(file: File) {
     const seq = ++sequence.current;
+    setPhoto(''); setPhotoConsent(false);
     setBusy('photo');
     setError('');
     try {
@@ -51,7 +61,7 @@ export function usePlayFlow(go: (path: string) => void) {
     }
   }
   async function recognizePhoto() {
-    if (!photo) return;
+    if (!photo || !photoConsent) { setError('Review the separate AI photo-processing information before continuing.'); return; }
     const seq = ++sequence.current;
     setBusy('recognition');
     setError('');
@@ -73,13 +83,15 @@ export function usePlayFlow(go: (path: string) => void) {
   async function ideas(children: Id<'children'>[], signed: boolean, policyOpen: boolean) {
     if(age<2||age>8){setError('Gummy Bear supports ages 2–8. Choose another child or update the age before requesting ideas.');return;}
     const seq = ++sequence.current;
+    setPhoto('');
     setBusy('ideas');
     setError('');
     setNotice('');
     try {
       const result = await generate({
         invitation: invitation || undefined,
-        image: photo,
+        // Confirmed toy names are sufficient; do not resend the photo.
+        image: '',
         age,
         confirmedToys: toys.map(x => x.trim()).filter(Boolean),
         visitorToken: getVisitorToken(),
@@ -106,9 +118,10 @@ export function usePlayFlow(go: (path: string) => void) {
               toyIds
             });
             if (recorded.length === result.activities.length) setIds(recorded);else setNotice('Your ideas are ready. Repeated suggestions were not stored again.');
-          } else if(!signed) {
+          } else if(!signed && temporaryConsent) {
             await retain({
               invitation,
+              privacyVersion: PRIVACY_VERSION,
               capability,
               activities: result.activities,
               age
@@ -128,7 +141,8 @@ export function usePlayFlow(go: (path: string) => void) {
   function cancel() {
     ++sequence.current;
     setBusy('');
-    setNotice('You’ve stopped waiting. The server may finish the request; your existing ideas are unchanged.');
+    setPhoto('');
+    setNotice('You’ve stopped waiting. The temporary photo has been cleared. The server may finish the request; your existing ideas are unchanged.');
   }
   async function link() {
     try {
@@ -143,11 +157,13 @@ export function usePlayFlow(go: (path: string) => void) {
     }
   }
   function reset() {
+    sessionStorage.removeItem('gummy-testing-invitation');setInvitation('');
     setCapability(Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,'0')).join(''));
     sessionStorage.removeItem('gummy-guest-capability');
     sessionStorage.removeItem('gummy-link-requested');
     ++sequence.current;
     setPhoto('');
+    setPhotoConsent(false);setTemporaryConsent(false);setPhotoUploadedAt(undefined);setAge(0);setResultAge(undefined);
     setToyIds([]);
     setToys([]);
     setActivities([]);
@@ -160,6 +176,7 @@ export function usePlayFlow(go: (path: string) => void) {
   function useSaved(activity:Activity,id:Id<'activities'>,toyIds:Id<'toys'>[],age:number){setActivities([activity]);setIds([id]);setResultAge(age);setToys(activity.toyReferences);setToyIds(toyIds);setPhoto('');setAge(age);setError('');setNotice('Your saved idea is unchanged. Choose the age for a different idea.');go('/app/age');}
   async function clearTemporary(){let warning='';if(sessionStorage.getItem('gummy-guest-capability'))try{await discard({capability});}catch{warning='The photo and ideas are cleared from this tab. The temporary server draft could not be deleted now and will expire after 24 hours.';}reset();return warning||'Temporary photo and guest ideas cleared.';}
   return {
+    confirmToys, photoConsent, setPhotoConsent, temporaryConsent, setTemporaryConsent,
     useSaved,
     resultAge,
     photoUploadedAt,

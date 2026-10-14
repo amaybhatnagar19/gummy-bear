@@ -219,3 +219,7 @@ Exact paths for this execution are listed below, relative to the repository. Gen
 - `tests/browser/isolatedBackend.ts`
 - `tests/browser/pwa.spec.ts`
 - `tests/browser/v1-flow.spec.ts`
+
+## Subsequent privacy/deletion follow-up
+
+The later approved privacy/deletion task supersedes the earlier privacy-planning status where noted: no original photo retention, preferred-label/age-only profiles, optional DOB/interests, versioned acknowledgment/contact choices, fixed guest expiry and resumable family/account requests are now implemented/tested locally. Full identity/financial/operational account deletion remains blocked and is not claimed complete. No follow-up deployment or collection/AI activation occurred. Current results and exact remaining decisions are in [PRIVACY_AND_DELETION_REPORT.md](PRIVACY_AND_DELETION_REPORT.md).

@@ -1,16 +1,18 @@
 import { query, mutation, internalMutation } from './_generated/server';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 import type { Id } from './_generated/dataModel';
-import { getAuthUserId } from '@convex-dev/auth/server';
+import { authenticatedOwner, requireCollectionConsent, recordConsent, requireTestingPrivacyOperation, activeDeletion } from './privacyAccess';
+import { requestDeletion } from './privacy';
+import { PRIVACY_VERSION } from '../shared/privacy';
 import { ConvexError, v } from 'convex/values';
 import { requireDataPolicy, dataPolicyOpen } from './v1Policy';
 import { cleanText, childAge, toyStatus, cadence, feedback, reminderEligible, donationEligible, ageFromBirthDate } from '../shared/v1';
 import type {Activity} from '../shared/activityContract';
 import { activityValidator, validateAndFilterActivities } from './activityResponses';
 import { activitiesRepeat } from './activityDuplicates';
-async function owner(ctx: QueryCtx | MutationCtx) {
-  const id = await getAuthUserId(ctx);
-  if (!id || !await ctx.db.get(id)) throw new ConvexError('Please sign in to manage your family.');
+async function owner(ctx: QueryCtx | MutationCtx, writing = true) {
+  const id = await authenticatedOwner(ctx);
+  if (writing) await requireCollectionConsent(ctx, id);
   return id;
 }
 async function childIds(ctx: MutationCtx, user: Id<'users'>, ids: Id<'children'>[]) {
@@ -24,10 +26,11 @@ export const state = query({
   args: {},
   returns: v.any(),
   handler: async ctx => {
-    const user = await owner(ctx);
+    const user = await owner(ctx, false);
+    const consent = await ctx.db.query('privacyConsents').withIndex('by_owner_scope', q => q.eq('owner', user).eq('scope', 'privacy')).unique();
     return {
       ownerId:user,
-      policyOpen: dataPolicyOpen(),
+      policyOpen: dataPolicyOpen() && consent?.version === PRIVACY_VERSION && consent.granted && !await activeDeletion(ctx, user),
       children: (await ctx.db.query('children').withIndex('by_owner', q => q.eq('owner', user)).take(20)).map(c=>({...c,age:c.dob?ageFromBirthDate(c.dob,Date.now()):c.age})),
       toys: await ctx.db.query('toys').withIndex('by_owner', q => q.eq('owner', user)).take(200),
       activities: await ctx.db.query('activities').withIndex('by_owner', q => q.eq('owner', user)).order('desc').take(500),
@@ -42,7 +45,7 @@ export const saveChild = mutation({
     label: v.string(),
     age: v.number(),
     dob: v.optional(v.string()),
-    interests: v.array(v.string())
+    interests: v.optional(v.array(v.string()))
   },
   returns: v.id('children'),
   handler: async (ctx, args) => {
@@ -56,13 +59,13 @@ export const saveChild = mutation({
       const age = now.getUTCFullYear() - date.getUTCFullYear() - (now.getUTCMonth() < date.getUTCMonth() || now.getUTCMonth() === date.getUTCMonth() && now.getUTCDate() < date.getUTCDate() ? 1 : 0);
       if (age !== args.age) throw new ConvexError('The birth date and age do not match.');
     }
-    if (args.interests.length > 8) throw new ConvexError('Choose up to eight interests.');
+    if ((args.interests ?? []).length > 8) throw new ConvexError('Choose up to eight interests.');
     const value = {
       owner: user,
       label: cleanText(args.label, 40),
       age: args.age,
       dob: args.dob,
-      interests: args.interests.map(x => cleanText(x, 40))
+      interests: (args.interests ?? []).map(x => cleanText(x, 40))
     };
     if (args.id) {
       const old = await ctx.db.get(args.id);
@@ -231,7 +234,7 @@ export const savePreferences = mutation({
       owner: user,
       ...args,
       photoRetention: 'none' as const,
-      consentVersion: 'pending-owner-policy'
+      consentVersion: PRIVACY_VERSION
     };
     if (old) await ctx.db.patch(old._id, value);else await ctx.db.insert('preferences', value);
     return null;
@@ -245,7 +248,7 @@ async function eligibleReminders(ctx:QueryCtx|MutationCtx,user:Id<'users'>,manua
  const period=(pref?.reminders==='monthly'?30:7)*86400000,now=Date.now();
  return toys.filter(t=>reminderEligible(t,now)&&(manual||!t.reminderShownAt||t.reminderShownAt<=now-period)&&!history.some(a=>a.toyIds?.includes(t._id)&&a.triedAt&&a.triedAt>now-period)).slice(0,5).map(t=>({...t,canDonate:donationEligible(t)}));
 }
-export const reminders=query({args:{manual:v.optional(v.boolean())},returns:v.any(),handler:async(ctx,{manual})=>eligibleReminders(ctx,await owner(ctx),manual)});
+export const reminders=query({args:{manual:v.optional(v.boolean())},returns:v.any(),handler:async(ctx,{manual})=>eligibleReminders(ctx,await owner(ctx,false),manual)});
 export const claimReminders=mutation({args:{},returns:v.any(),handler:async ctx=>{requireDataPolicy();const user=await owner(ctx);const rows=await eligibleReminders(ctx,user);for(const row of rows)await ctx.db.patch(row._id,{reminderShownAt:Date.now()});return rows;}});
 export const dismissReminder = mutation({
   args: {
@@ -275,8 +278,8 @@ export const deleteChild = mutation({
   handler: async (ctx, {
     id
   }) => {
-    requireDataPolicy();
-    const user = await owner(ctx);
+    requireTestingPrivacyOperation();
+    const user = await owner(ctx, false);
     const child = await ctx.db.get(id);
     if (child?.owner !== user) throw new ConvexError('This child profile is unavailable.');
     for (const table of ['toys', 'activities'] as const) {
@@ -289,23 +292,39 @@ export const deleteChild = mutation({
     return null;
   }
 });
+// Backward-compatible entry; new UI uses the explicit progress response.
 export const deleteFamilyData = mutation({
-  args: {
-    confirmation: v.literal('DELETE FAMILY DATA')
-  },
-  returns: v.null(),
+  args: { confirmation: v.literal('DELETE FAMILY DATA') }, returns: v.null(),
   handler: async ctx => {
-    requireDataPolicy();
-    const user = await owner(ctx);
-    for (const table of ['children', 'toys', 'activities', 'attempts', 'preferences'] as const) {
-      const rows = await ctx.db.query(table).withIndex('by_owner', q => q.eq('owner', user)).take(501);
-      if (rows.length > 500) throw new ConvexError('This collection needs a reviewed bulk deletion before it can be removed.');
-      for (const row of rows) await ctx.db.delete(row._id);
-    }
-    const guests = await ctx.db.query('guestProgress').withIndex('by_claimed', q => q.eq('claimedBy', user)).take(201);
-    if (guests.length > 200) throw new ConvexError('This collection needs reviewed bulk deletion.');
-    for (const guest of guests) if (guest.claimedBy === user) await ctx.db.delete(guest._id);
+    const result = await requestDeletion(ctx, 'family');
+    // Throw rolls back this entire transaction. Legacy callers must never
+    // mistake the old null result for a partially completed removal.
+    if (result.status !== 'finished_family') throw new ConvexError('Use the progress-aware family removal in Profile. Removal has not been confirmed by this legacy request.');
     return null;
+  }
+});
+export const deleteToy = mutation({
+  args: { id: v.id('toys'), confirmation: v.literal('DELETE TOY') }, returns: v.null(),
+  handler: async (ctx, { id }) => {
+    requireTestingPrivacyOperation(); const user = await owner(ctx, false);
+    const toy = await ctx.db.get(id); if (!toy) return null;
+    if (toy.owner !== user) throw new ConvexError('This toy is unavailable.');
+    const activities = await ctx.db.query('activities').withIndex('by_owner', q => q.eq('owner', user)).take(501);
+    if (activities.length > 500) throw new ConvexError('Use the reviewed family-data removal for this large collection.');
+    for (const activity of activities) if (activity.toyIds?.includes(id)) await ctx.db.patch(activity._id, { toyIds: activity.toyIds.filter(toy => toy !== id) });
+    await ctx.db.delete(id); return null;
+  }
+});
+export const deleteActivity = mutation({
+  args: { id: v.id('activities'), confirmation: v.literal('DELETE ACTIVITY') }, returns: v.null(),
+  handler: async (ctx, { id }) => {
+    requireTestingPrivacyOperation(); const user = await owner(ctx, false);
+    const activity = await ctx.db.get(id); if (!activity) return null;
+    if (activity.owner !== user) throw new ConvexError('This activity is unavailable.');
+    const attempts = await ctx.db.query('attempts').withIndex('by_activity', q => q.eq('owner', user).eq('activityId', id)).take(501);
+    if (attempts.length > 500) throw new ConvexError('Use the reviewed family-data removal for this large history.');
+    for (const attempt of attempts) await ctx.db.delete(attempt._id);
+    await ctx.db.delete(id); return null;
   }
 });
 export const saveContact = mutation({
@@ -323,15 +342,19 @@ export const saveContact = mutation({
     const old = await ctx.db.query('preferences').withIndex('by_owner', q => q.eq('owner', user)).unique();
     if (old) await ctx.db.patch(old._id, {
       ...args,
-      phone: args.phone
+      phone: args.phone,
+      phoneConsent: Boolean(args.phone && args.phoneConsent)
     });else await ctx.db.insert('preferences', {
       owner: user,
       reminders: 'off',
       emailOptIn: false,
       photoRetention: 'none',
-      consentVersion: 'pending-owner-policy',
-      ...args
+      consentVersion: PRIVACY_VERSION,
+      ...args,
+      phoneConsent: Boolean(args.phone && args.phoneConsent)
     });
+    await recordConsent(ctx, user, 'phone', Boolean(args.phone && args.phoneConsent));
+    await recordConsent(ctx, user, 'future_whatsapp', args.futureWhatsAppOptIn);
     return null;
   }
 });

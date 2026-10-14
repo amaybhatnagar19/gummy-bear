@@ -1,6 +1,7 @@
 import { internalMutation } from './_generated/server';
 import { getAuthUserId } from '@convex-dev/auth/server';
 import { v, ConvexError } from 'convex/values';
+import { requireCollectionConsent, requireNoDeletion } from './privacyAccess';
 import { requireLiveAI } from './v1Policy';
 export async function inviteDigest(value: string) {
   if (!/^[a-f0-9]{64}$/.test(value)) throw new ConvexError('Use the testing invitation supplied by the owner.');
@@ -21,6 +22,7 @@ export const invite = internalMutation({
     const all = await ctx.db.query('testingInvites').take(11);
     if (all.length >= 10) throw new ConvexError('Ten testing invitations have already been allocated.');
     if (owner && !(await ctx.db.get(owner))) throw new ConvexError('This account is unavailable.');
+    if (owner) await requireNoDeletion(ctx, owner);
     if (owner && (await ctx.db.query('testingInvites').withIndex('by_owner', q => q.eq('owner', owner)).unique())) throw new ConvexError('Already invited.');
     const capability = Array.from(crypto.getRandomValues(new Uint8Array(32)), b => b.toString(16).padStart(2, '0')).join('');
     const id = await ctx.db.insert('testingInvites', {
@@ -54,6 +56,7 @@ export const reserve = internalMutation({
     requireLiveAI();
     const user = await getAuthUserId(ctx);
     if(user&&!await ctx.db.get(user))throw new ConvexError('This testing account is unavailable.');
+    if(user)await requireCollectionConsent(ctx,user);
     let invite = user ? await ctx.db.query('testingInvites').withIndex('by_owner', q => q.eq('owner', user)).unique() : null;
     if (!invite && invitation) {
       const hash = await inviteDigest(invitation);

@@ -4,6 +4,8 @@ React + Vite + Convex, with Convex Auth and Convex static hosting. The approved 
 
 The new experience is integrated and tested with synthetic data and simulated AI replies. **It is not ready for real testers or production:** real personal-data collection, paid AI, Google sign-in and email delivery remain closed pending approval/configuration. See [V1_IMPLEMENTATION_REPORT.md](V1_IMPLEMENTATION_REPORT.md) and [V1_IMPLEMENTATION_PROGRESS.md](V1_IMPLEMENTATION_PROGRESS.md).
 
+Privacy/deletion follow-up: [PRIVACY_AND_DELETION_REPORT.md](PRIVACY_AND_DELETION_REPORT.md) contains the current retention matrix, consent copy, tests and remaining approvals. Photo cleanup, optional child fields, versioned acknowledgment and resumable family/account-request removal are implemented and tested locally. Full identity/financial/operational deletion remains policy-blocked. These follow-up changes have **not been installed in the isolated cloud backend** because deployment was prohibited; no collection/AI flags were enabled.
+
 ## Local testing only
 
 The separate `gummy-bear-v1-testing` project uses deployment `blissful-dotterel-906`. Its credentials are in the ignored `.env.v1-testing`; the original `.env.local` is preserved and must not be used for V1 CLI operations.
@@ -50,6 +52,8 @@ The separate testing artifact verifies its backend URL, strips payment assets, a
 - Explicit toy status/condition/assignments; acquisition, inventory addition, photo analysis and parent-reported attempts stay distinct.
 - In-app/manual rediscovery, frequency limits, dismissal, known-new exclusions and condition-aware donation guidance. Email reminders are not connected.
 - Temporary guest linking uses a separate random proof, not the browser trial identifier or matching email. Drafts expire after 24 hours, with scheduled cleanup and proof-based deletion.
+- Original photographs are not retained. Reduced previews are temporary; confirmed-name generation does not resend the photo. Optional guest draft saving requires a separate choice and cannot extend the initial 24-hour expiry.
+- Only a preferred child label and age are required; DOB/interests are optional. Profile includes explicit privacy acknowledgment, separate optional contact choices, family deletion progress and account-deletion requests. An account request ends at a truthful pending-policy stage, preserving identity/sessions/financial records for approved finalization; it is not completed account deletion.
 - Manifest, original-logo PNG/maskable icons, installation guidance and a public offline shell. Private records/photos/API responses are never service-worker cache entries.
 
 ## Access, accounts and payments

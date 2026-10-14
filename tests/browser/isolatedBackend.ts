@@ -7,8 +7,9 @@ export const testingStorageNamespace = testingBackendURL.replace(/[^a-zA-Z0-9]/g
 const expectedHost = new URL(testingBackendURL).hostname;
 
 // Synthetic protocol replies only. This helper never connects to a remote server.
-export async function isolate(page: Page, account: 'guest' | 'paid' | 'payment' = 'guest', flow = false, family?: {policyOpen:boolean;children:any[];toys:any[];activities:any[];preferences:any;attempts?:any[]}) {
+export async function isolate(page: Page, account: 'guest' | 'paid' | 'payment' = 'guest', flow = false, family?: {policyOpen:boolean;children:any[];toys:any[];activities:any[];preferences:any;attempts?:any[]}, failDeletionOnce = false) {
   const calls: string[] = [];
+  const privacy:any={version:'v1-privacy-2026-10-14',isolatedTesting:true,collectionEnabled:family?.policyOpen??false,acknowledged:!!family,consents:[],accountDeletion:null,familyDeletion:null};
   const token = `${Buffer.from('{"alg":"RS256"}').toString('base64url')}.${Buffer.from(JSON.stringify({ sub: 'synthetic-d1-session', iat: Math.floor(Date.now() / 1000), exp: Math.floor(Date.now() / 1000) + 86400 })).toString('base64url')}.synthetic`;
   await page.route('**/*', async route => {
     const url = new URL(route.request().url());
@@ -41,7 +42,7 @@ export async function isolate(page: Page, account: 'guest' | 'paid' | 'payment' 
     if (['127.0.0.1', 'localhost'].includes(url.hostname)) { socket.connectToServer(); return; }
     if (url.hostname !== expectedHost) { socket.close(); throw new Error('Unapproved backend socket blocked.'); }
     // Exercise the unchanged real Convex/Auth client against a local simulation.
-    const familyQueries=new Set<number>();
+    const familyQueries=new Set<number>(),privacyQueries=new Set<number>();
     let version = { querySet: 0, identity: 0, ts: 'AAAAAAAAAAA=' };
     let clock = 0;
     const transition = (patch: Partial<typeof version>, modifications: unknown[] = []) => {
@@ -57,6 +58,7 @@ export async function isolate(page: Page, account: 'guest' | 'paid' | 'payment' 
         transition({ querySet: message.newVersion }, message.modifications.map((mod: { type: string; queryId: number; udfPath?: string }) => {
           if (mod.type === 'Remove') return { type: 'QueryRemoved', queryId: mod.queryId };
           if (mod.udfPath === 'v1Capabilities:status') return {type:'QueryUpdated',queryId:mod.queryId,value:{isolatedTesting:true,personalData:family?.policyOpen??false,liveAIReady:flow,google:false,emailOtp:false,emailReminders:false},logLines:[],journal:null};
+          if (mod.udfPath === 'privacy:status') {privacyQueries.add(mod.queryId);return {type:'QueryUpdated',queryId:mod.queryId,value:privacy,logLines:[],journal:null};}
           if (mod.udfPath === 'family:state') { familyQueries.add(mod.queryId);return {type:'QueryUpdated',queryId:mod.queryId,value:family??{policyOpen:false,children:[],toys:[],activities:[],preferences:null},logLines:[],journal:null}; }
           if (mod.udfPath === 'family:reminders') return {type:'QueryUpdated',queryId:mod.queryId,value:[],logLines:[],journal:null};
           if (mod.udfPath !== 'access:status') throw new Error(`Unexpected D1 query: ${mod.udfPath}`);
@@ -65,7 +67,8 @@ export async function isolate(page: Page, account: 'guest' | 'paid' | 'payment' 
       }
       if (message.type === 'Mutation') {
         calls.push(message.udfPath);
-        if(family&&['family:saveChild','family:saveToy','family:updateActivity','family:savePreferences','family:deleteChild','family:deleteFamilyData'].includes(message.udfPath)){
+        if(failDeletionOnce&&message.udfPath==='privacy:requestAccountDeletion'&&calls.filter(name=>name==='privacy:requestAccountDeletion').length===1){socket.send(JSON.stringify({type:'MutationResponse',requestId:message.requestId,success:false,result:'Synthetic deletion failure',ts:version.ts,logLines:[]}));return;}
+        if(family&&['family:saveChild','family:saveToy','family:updateActivity','family:savePreferences','family:deleteChild','family:deleteFamilyData','privacy:acknowledge','privacy:deleteFamily','privacy:requestAccountDeletion','privacy:resumeDeletion'].includes(message.udfPath)){
           const args=message.args[0];let result:any=null;
           if(message.udfPath==='family:saveChild'||message.udfPath==='family:saveToy'){
             const rows=message.udfPath==='family:saveChild'?family.children:family.toys;
@@ -75,9 +78,12 @@ export async function isolate(page: Page, account: 'guest' | 'paid' | 'payment' 
           if(message.udfPath==='family:updateActivity'){const row=family.activities.find(a=>a._id===args.id);if(!row)throw new Error('Unexpected synthetic activity ID');Object.assign(row,args);if(args.tried){row.triedAt=Date.now();(family.attempts??=[]).push({_id:'synthetic-attempt-'+family.attempts.length,owner:'synthetic-parent',activityId:row._id,at:Date.now(),feedback:args.feedback});}else if(args.feedback){const last=family.attempts?.filter(a=>a.activityId===row._id).at(-1);if(last)last.feedback=args.feedback;}}
           if(message.udfPath==='family:savePreferences')family.preferences={_id:'synthetic-preferences',owner:'synthetic-parent',photoRetention:'none',...args};
           if(message.udfPath==='family:deleteChild')family.children=family.children.filter(c=>c._id!==args.id);
+          if(message.udfPath==='privacy:acknowledge'){privacy.acknowledged=true;family.policyOpen=true;}
+          if(['privacy:deleteFamily','privacy:requestAccountDeletion'].includes(message.udfPath)){family.children=[];family.toys=[];family.activities=[];family.attempts=[];family.preferences=null;family.policyOpen=false;privacy.acknowledged=false;result={status:message.udfPath==='privacy:requestAccountDeletion'?'awaiting_policy':'finished_family',familyDeleted:true,accountDeleted:false,deletedCount:3,requestedAt:Date.now()};privacy[message.udfPath==='privacy:requestAccountDeletion'?'accountDeletion':'familyDeletion']=result;}
+          if(message.udfPath==='privacy:resumeDeletion')result=privacy.accountDeletion??privacy.familyDeletion;
           if(message.udfPath==='family:deleteFamilyData'){family.children=[];family.toys=[];family.activities=[];family.preferences=null;}
           socket.send(JSON.stringify({type:'MutationResponse',requestId:message.requestId,success:true,result,ts:version.ts,logLines:[]}));
-          transition({},[...familyQueries].map(queryId=>({type:'QueryUpdated',queryId,value:family,logLines:[],journal:null})));return;
+          transition({},[...[...familyQueries].map(queryId=>({type:'QueryUpdated',queryId,value:family,logLines:[],journal:null})),...[...privacyQueries].map(queryId=>({type:'QueryUpdated',queryId,value:privacy,logLines:[],journal:null}))]);return;
         }
         if (message.udfPath !== 'analytics:identifyVisitor') throw new Error(`Unexpected D1 mutation: ${message.udfPath}`);
         socket.send(JSON.stringify({ type: 'MutationResponse', requestId: message.requestId, success: true, result: null, ts: version.ts, logLines: [] }));
@@ -85,7 +91,7 @@ export async function isolate(page: Page, account: 'guest' | 'paid' | 'payment' 
       if (message.type === 'Action') {
         calls.push(message.udfPath);
         if (flow && message.udfPath === 'recognition:recognize') { socket.send(JSON.stringify({type:'ActionResponse',requestId:message.requestId,success:true,result:{toys:['brown teddy'],recognizedAt:Date.now()},logLines:[]}));return; }
-        if (flow && message.udfPath === 'v1Ideas:generate') { const toy=message.args[0].confirmedToys[0]; const count=calls.filter(c=>c==='v1Ideas:generate').length;socket.send(JSON.stringify({type:'ActionResponse',requestId:message.requestId,success:count===1,result:count===1?{schemaVersion:2,outcome:'success',limitation:null,toys:[toy],activities:[{category:'creative_adventure',title:'A tiny journey',durationMinutes:5,materials:[toy],toyReferences:[toy],steps:[`Hold the ${toy} and tell a pretend travel story.`,`Take turns describing where the ${toy} goes next.`],parentRole:'Sit together and help your child take turns.',safetyNotes:['Use an intact age-appropriate toy.']}]}:'Synthetic timeout. Your previous ideas are still here.',logLines:[]}));return; }
+        if (flow && message.udfPath === 'v1Ideas:generate') { if(message.args[0].image!=='')throw new Error('Confirmed-toy generation must not resend a photo'); const toy=message.args[0].confirmedToys[0]; const count=calls.filter(c=>c==='v1Ideas:generate').length;socket.send(JSON.stringify({type:'ActionResponse',requestId:message.requestId,success:count===1,result:count===1?{schemaVersion:2,outcome:'success',limitation:null,toys:[toy],activities:[{category:'creative_adventure',title:'A tiny journey',durationMinutes:5,materials:[toy],toyReferences:[toy],steps:[`Hold the ${toy} and tell a pretend travel story.`,`Take turns describing where the ${toy} goes next.`],parentRole:'Sit together and help your child take turns.',safetyNotes:['Use an intact age-appropriate toy.']}]}:'Synthetic timeout. Your previous ideas are still here.',logLines:[]}));return; }
         if (message.udfPath !== 'auth:signOut') throw new Error(`D1 must not call AI or create accounts: ${message.udfPath}`);
         socket.send(JSON.stringify({ type: 'ActionResponse', requestId: message.requestId, success: true, result: null, logLines: [] }));
       }

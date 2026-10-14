@@ -4,7 +4,7 @@ import { isolate } from './isolatedBackend';
 const url = process.env.GUMMY_TEST_URL;
 if (!url || !['localhost', '127.0.0.1'].includes(new URL(url).hostname)) throw new Error('App shell tests require an explicit local isolated test URL.');
 
-test('signed-in navigation preserves a photo and age through Back, with direct route recovery', async ({ page }) => {
+test('signed-in navigation clears unused photos through Back, with direct route recovery', async ({ page }) => {
   const calls = await isolate(page, 'paid');
   await page.goto('/app');
   await page.getByLabel('Choose one toy photo').setInputFiles({ name: 'synthetic-fixture.jpg', mimeType: 'image/jpeg', buffer: readFileSync('tests/fixtures/teddy.jpg') });
@@ -20,7 +20,7 @@ test('signed-in navigation preserves a photo and age through Back, with direct r
   await expect(page.getByRole('heading', { name: 'My Toys', exact: true })).toBeVisible();
   await page.goBack(); await expect(page).toHaveURL(/\/app\/home$/);
   await page.goBack(); await expect(page).toHaveURL(/\/app$/);
-  await expect(page.getByRole('img', { name: 'Your selected toy photo' })).toBeVisible();
+  await expect(page.getByRole('img', { name: 'Your selected toy photo' })).toHaveCount(0);
 
   for (const [path, title] of [['/app/toys', 'My Toys'], ['/app/activities', 'Activities'], ['/app/profile', 'Profile']]) {
     await page.goto(path); await page.reload();
