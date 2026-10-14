@@ -107,3 +107,14 @@ Created: `convex/aiEvaluation.ts`, `convex/evaluationPolicy.ts`, `shared/aiEvalu
 Starting reversible checkpoint: `941b748`. Final local checkpoint recorded in Git. Roll back only this task's files with a targeted revert; preserve unrelated untracked work and cumulative evaluation receipts/ledger. Any testing backend rollback must use the isolated push wrapper with live gates closed. No production deployment is authorized.
 
 **Not production-ready for live AI.** Resolve R1 completion, provider setup, full cost verification and corpus readiness before any pilot. Then human live output review and actual billing reconciliation are required before quality/safety or launch claims.
+
+
+## Reverification after renewed Decision 5A instruction
+
+14 October 2026. The existing evaluation infrastructure was reused rather than resetting its ledger or implementing a second path. Read-only testing status again reports $0 reserved, one ready image and missing privacy, provider-key/project, spending and current cost-verification prerequisites. `convex/privacy.ts` still explicitly reports `fullAccountDeletionImplemented=false` and `accountDeleted=false`; account requests end at `awaiting_policy`. The safe R1 task has completed, but full identity deletion is not implemented. The renewed budget instruction does not supply the missing implementation, key or retention approvals.
+
+Ran `node --experimental-strip-types scripts/ai-evaluation.mjs check`, `npm test`, `./node_modules/.bin/tsc --noEmit` and `git diff --check`: 364 guarded Vitest tests plus 3 Node tests passed, TypeScript passed, and no whitespace errors. Current official model, spend-limit and data-control documentation was reopened; testing-account entitlement and complete image/counting cost bounds remain unverified. Builds and browser checks above are from the earlier infrastructure verification and were not rerun in this documentation-only follow-up.
+
+**No live pilot run; no photo transmission, provider configuration, deployment, production access or remote mutation. Actual task spending $0; all $10 remains.** Recognition accuracy, real-model quality/safety, latency and actual billed token usage remain unmeasured. The exact setup checklist above remains required. `AI_EVALUATION_READINESS.md` proposes a synthetic-only separation; it is not implemented or implicitly approved by repeating the broad budget authorization. No gates were weakened or flags set.
+
+Next action: resolve and record the applicable privacy scope/retention approval, then provide the separate testing provider setup and verified cost evidence. Stop before live requests until all readiness checks pass.
