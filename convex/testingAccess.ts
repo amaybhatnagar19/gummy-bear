@@ -1,4 +1,5 @@
-import { internalMutation } from './_generated/server';
+import { verifiedNormalCosts } from './boundedProvider';
+import { internalQuery, internalMutation } from './_generated/server';
 import { getAuthUserId } from '@convex-dev/auth/server';
 import { v, ConvexError } from 'convex/values';
 import { requireCollectionConsent, requireNoDeletion } from './privacyAccess';
@@ -129,3 +130,23 @@ export const release = internalMutation({
     return null;
   }
 });
+
+const usageLease={id:v.id('testingInvites'),lease:v.string()};
+async function activeUsageLease(ctx:import('./_generated/server').QueryCtx,args:{id:import('./_generated/dataModel').Id<'testingInvites'>;lease:string}){
+ requireLiveAI();verifiedNormalCosts();const invite=await ctx.db.get(args.id);const user=await getAuthUserId(ctx);
+ if(!invite||invite.lease!==args.lease||invite.activeUntil<=Date.now()||invite.expiresAt<=Date.now()||invite.owner&&invite.owner!==user)throw new ConvexError('Testing request lease is unavailable.');
+ if(user)await requireCollectionConsent(ctx,user);
+ const budget=await ctx.db.query('testingBudget').withIndex('by_key',q=>q.eq('key','initial-14-days')).unique();
+ if(!budget||budget.haltReason||effectiveReservedMicros(budget)>Number(process.env.V1_AI_BUDGET_MICROS))throw new ConvexError('Testing budget requires review.');
+ return budget;
+}
+export const verifyLease=internalQuery({args:usageLease,returns:v.null(),handler:async(ctx,args)=>{await activeUsageLease(ctx,args);return null;}});
+export const recordUsage=internalMutation({args:{...usageLease,modelEstimateMicros:v.number()},returns:v.null(),handler:async(ctx,args)=>{
+ const row=await activeUsageLease(ctx,args);if(!Number.isSafeInteger(args.modelEstimateMicros)||args.modelEstimateMicros<0||args.modelEstimateMicros>Number(process.env.V1_AI_REQUEST_CEILING_MICROS))throw new ConvexError('Usage estimate needs review.');
+ await ctx.db.patch(row._id,{usageEstimatedMicros:(row.usageEstimatedMicros??0)+args.modelEstimateMicros});return null;
+}});
+export const haltUsage=internalMutation({args:usageLease,returns:v.null(),handler:async(ctx,args)=>{
+ if(process.env.CONVEX_CLOUD_URL!==(await import('../shared/testingDeployment.js')).testingBoundary.convexUrl)throw new ConvexError('Usage accounting is testing-only.');
+ const invite=await ctx.db.get(args.id);if(!invite)throw new ConvexError('Testing invitation unavailable.');
+ const row=await ctx.db.query('testingBudget').withIndex('by_key',q=>q.eq('key','initial-14-days')).unique();if(row)await ctx.db.patch(row._id,{haltReason:'usage_uncertain'});return null;
+}});

@@ -1,3 +1,4 @@
+import { verifiedNormalCosts } from './boundedProvider';
 import { getAuthUserId } from '@convex-dev/auth/server';
 import { action } from './_generated/server';
 import { internal, api } from './_generated/api';
@@ -20,6 +21,7 @@ export const generate = action({
   returns: v.object({...structuredResultValidator.fields,activityIds:v.array(v.id('activities'))}),
   handler: async (ctx, args): Promise<StructuredResult & {activityIds:Id<'activities'>[]}> => {
     requireLiveAI();
+    verifiedNormalCosts();
     if(args.previous.length>100)throw new ConvexError('Choose fewer previous ideas.');
     const lease = await ctx.runMutation(internal.testingAccess.reserve, {
       kind: 'generation',
@@ -52,7 +54,7 @@ export const generate = action({
         age: args.age,
         confirmedToys: args.confirmedToys,
         previous,
-        interests
+        interests, usageLease:lease
       });
       let activityIds:Id<'activities'>[]=[];
       if(user&&result.activities.length){const stored=await ctx.runMutation(internal.family.recordGenerated,{activities:result.activities,age:args.age,children:args.children,toyIds:args.toyIds});activityIds=stored.ids;result=stored.activities.length?{...result,activities:stored.activities}:limitationResult(args.confirmedToys,'repetition');}

@@ -1,3 +1,4 @@
+import { boundedResponse } from './boundedProvider';
 import { requireGenerationRelease } from './releasePolicy';
 import { internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
@@ -9,9 +10,9 @@ import { activityJsonSchema, type StructuredResult, type Activity } from '../sha
 import { structuredResultValidator, validateAndFilterActivities, limitationResult, activityValidator } from './activityResponses';
 export { discover } from './ideas';
 export const generate = internalAction({
-  args: { image: v.string(), age: v.number(), confirmedToys: v.optional(v.array(v.string())), previous: v.optional(v.array(activityValidator)), interests: v.optional(v.array(v.string())) },
+  args: { image: v.string(), age: v.number(), confirmedToys: v.optional(v.array(v.string())), previous: v.optional(v.array(activityValidator)), interests: v.optional(v.array(v.string())), usageLease:v.optional(v.object({id:v.id('testingInvites'),lease:v.string()})) },
   returns: structuredResultValidator,
-  handler: async (ctx, { image, age, confirmedToys, previous = [], interests = [] }): Promise<StructuredResult> => {
+  handler: async (ctx, { image, age, confirmedToys, previous = [], interests = [], usageLease }): Promise<StructuredResult> => {
     requireGenerationRelease();
     if (!Number.isInteger(age) || age < 2 || age > 8) throw new ConvexError('Choose an age between 2 and 8.');
     if ((!image && !confirmedToys) || image.length > 350000 || (image && !/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(image))) throw new ConvexError('Choose one clear photo. It must be reduced before sending.');
@@ -24,11 +25,11 @@ export const generate = internalAction({
     if (!await ctx.runMutation(internal.quota.reserve, {})) throw new ConvexError('Gummy Bear has reached its hourly limit. Please try again in an hour.');
     let response: Response;
     try {
-      response = await fetch('https://api.openai.com/v1/responses', {
+      response = usageLease ? await boundedResponse(ctx,activityRequest({image,age,confirmedToys,previous,interests}),key,usageLease) : await fetch('https://api.openai.com/v1/responses', {
         method: 'POST', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(60000),
         body: JSON.stringify(activityRequest({image, age, confirmedToys, previous, interests})),
       });
-    } catch { throw new ConvexError('The connection took too long. Please try again.'); }
+    } catch(error) { if(error instanceof ConvexError)throw error;throw new ConvexError('The connection took too long. Please try again.'); }
     if (!response.ok) {
       // Provider error fields may echo request content. Log only our fixed
       // event name and numeric HTTP status, never the returned body or image.

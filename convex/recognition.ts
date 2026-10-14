@@ -1,3 +1,4 @@
+import { boundedResponse, verifiedNormalCosts } from './boundedProvider';
 import { action } from './_generated/server';
 import { internal } from './_generated/api';
 import { v, ConvexError } from 'convex/values';
@@ -14,6 +15,7 @@ export const recognize = action({
     invitation
   }) => {
     requireLiveAI();
+    verifiedNormalCosts();
     if (image.length > 350000 || !/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(image)) throw new ConvexError('Choose one clear toy photo.');
     const key = process.env.OPENAI_API_KEY;
     if (!key) throw new ConvexError('Toy recognition isn’t connected yet. Your photo stays here.');
@@ -23,15 +25,7 @@ export const recognize = action({
     });
     try {
       if (!(await ctx.runMutation(internal.quota.reserve, {}))) throw new ConvexError('The hourly AI limit has been reached. Try again later.');
-      const response = await fetch('https://api.openai.com/v1/responses', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${key}`,
-          'Content-Type': 'application/json'
-        },
-        signal: AbortSignal.timeout(60000),
-        body: JSON.stringify(recognitionRequest(image))
-      });
+      const response = await boundedResponse(ctx,recognitionRequest(image),key,lease);
       if (!response.ok) throw new ConvexError('Recognition is unavailable right now. Try again or use a clearer photo.');
       const body = await response.json();
       return parseRecognitionBody(body);

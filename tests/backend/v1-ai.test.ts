@@ -4,6 +4,9 @@ import schema from '../../convex/schema';
 import { api,internal } from '../../convex/_generated/api';
 import { mockProviderOnce } from '../setup/no-network';
 import { testingBoundary } from '../../shared/testingDeployment.js';
+// These existing activity/recognition contract cases retain a single scoped provider
+// response; the real count+usage path is covered in bounded-provider.test.ts.
+vi.mock('../../convex/boundedProvider',()=>({verifiedNormalCosts:()=>({fee:0,ceiling:10000}),boundedResponse:async(_ctx:unknown,request:unknown,key:string)=>fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'},signal:AbortSignal.timeout(60000),body:JSON.stringify(request)})}));
 const modules=import.meta.glob('../../convex/**/*.ts');
 const image='data:image/jpeg;base64,YQ==';
 const activity={category:'creative_adventure' as const,title:'Trip',durationMinutes:5,materials:['purple stuffed animal'],toyReferences:['purple stuffed animal'],steps:['Tell a pretend travel story for the purple stuffed animal.','Take turns describing where the purple stuffed animal goes next.'],parentRole:'Stay with your child and help them take turns.',safetyNotes:['Use intact age-appropriate toys.']};
