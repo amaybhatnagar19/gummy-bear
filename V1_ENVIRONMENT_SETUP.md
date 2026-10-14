@@ -110,3 +110,8 @@ The compiled testing preview now uses a separate verified artifact, strips payme
 Decision 5A authorizes up to $10 USD conditionally; it replaces the previous disabled-only budget decision without activating AI. Testing-only reservation/usage infrastructure and deterministic tests are implemented. Safe R1 source/schema and evaluation functions are now installed in `gummy-bear-v1-testing` only. R1 identity deletion and retention approvals remain incomplete; separate provider credentials/cap, full cost accounting and 20 reviewed photos are missing. No live requests or spending occurred; general collection/payment/AI gates remain closed. See [AI_EVALUATION_REPORT.md](AI_EVALUATION_REPORT.md) for exact prerequisites, setup, tests and rollback.
 
 Verification: 364 guarded Vitest tests plus 3 Node tests, strict TypeScript and production/testing builds passed. Pilot command refused activation before provider calls.
+
+
+## Approved toy-only evaluation separation — 14 October 2026
+
+Implemented a separate internal, testing-only synthetic evaluation policy; preserved all real-parent gates. Prepared 24 licensed reduced photographs with attribution, privacy checks, SHA-256 allowlisting and metadata tests. Installed disabled functions only into the verified testing deployment; public HTTP access rejected. Verification: 373 guarded Vitest tests +3 Node tests, TypeScript/builds and 15 isolated browser checks passed. Provider key/cap and full request costs still missing: no live requests, $0 spent, $10 remaining. See [SYNTHETIC_AI_EVALUATION_REPORT.md](SYNTHETIC_AI_EVALUATION_REPORT.md).

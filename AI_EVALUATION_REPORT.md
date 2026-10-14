@@ -1,3 +1,5 @@
+> **Current status, 14 October 2026:** Synthetic-only separation is now approved and implemented; 24 licensed reduced toy photographs are ready. Live requests remain disabled pending provider/key/full cost verification. The full-R1 dependency and one-image status described below are historical. See [SYNTHETIC_AI_EVALUATION_REPORT.md](SYNTHETIC_AI_EVALUATION_REPORT.md) for current controls, dataset and exact setup; real-parent R1 gates remain unchanged.
+
 # Live AI evaluation readiness report
 
 14 October 2026. Decision 5A replaces 5C: up to **$10 USD total**, conditional on privacy readiness, verified pricing and enforced controls. This is authorization for a ceiling, not activation or a requirement to spend.

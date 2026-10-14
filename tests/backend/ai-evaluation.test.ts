@@ -5,12 +5,10 @@ import schema from '../../convex/schema';
 import { testingBoundary } from '../../shared/testingDeployment.js';
 import { mockProviderOnce } from '../setup/no-network';
 const image = 'data:image/jpeg;base64,/9j/2Q==';
-// Unit simulation only. The separate policy test uses the real false capability.
-vi.mock('../../convex/privacy', async importOriginal => ({...await importOriginal<typeof import('../../convex/privacy')>(),fullAccountDeletionImplemented:true}));
 vi.mock('../../shared/evaluationCorpus', async () => {
   const {createHash} = await import('node:crypto');
   return ({
-  evaluationCases: Array.from({ length: 24 }, (_, i) => ({ id: `case-${String(i + 1).padStart(2, '0')}`, age: 2 + i % 7, category: 'blocks', confirmedToys: ['large blocks'], expectedLabels: ['large blocks'], generationAllowed: true, licenseVerified: true, asset: 'synthetic-corpus.jpg', imageSha256: createHash('sha256').update(i === 2 ? Buffer.from([255,216,255,217]) : Buffer.from([255,216,255,217,i])).digest('hex') }))
+  EVALUATION_DATASET_VERSION: 'toy-only-24-2026-10-14', evaluationCases: Array.from({ length: 24 }, (_, i) => ({ id: `case-${String(i + 1).padStart(2, '0')}`, age: 2 + i % 7, category: 'blocks', confirmedToys: ['large blocks'], expectedLabels: ['large blocks'], generationAllowed: true, licenseVerified: true, privacyReviewed: true, asset: 'synthetic-corpus.jpg', imageSha256: createHash('sha256').update(i === 2 ? Buffer.from([255,216,255,217]) : Buffer.from([255,216,255,217,i])).digest('hex') }))
 }); });
 const modules = import.meta.glob('../../convex/**/*.ts');
 const m = (name: string) => makeFunctionReference<'mutation', any, any>(name);
@@ -18,21 +16,21 @@ const a = (name: string) => makeFunctionReference<'action', any, any>(name);
 const q = (name: string) => makeFunctionReference<'query', any, any>(name);
 const activity = { category: 'quick_play', title: 'A low tower', durationMinutes: 5, materials: ['large blocks'], toyReferences: ['large blocks'], steps: ['Stack large blocks into a short tower on the floor.', 'Count the large blocks as you add each one.'], parentRole: 'Stay beside your child and take turns.', safetyNotes: ['Use intact age-appropriate toys.'] };
 function enable() {
-  const flags = { CONVEX_CLOUD_URL: testingBoundary.convexUrl, V1_DATA_POLICY_APPROVED: 'true', V1_DATA_POLICY_VERSION: 'v1-privacy-2026-10-14', V1_R1_READINESS_APPROVED: 'true', V1_AI_EVALUATION_APPROVED: 'true', V1_EVALUATION_PRICE_VERIFIED: 'gpt-6-luna-standard-2026-10-14', V1_EVALUATION_INPUT_ACCOUNTING_VERIFIED: 'true', V1_EVALUATION_PROVIDER_LIMIT_VERIFIED: 'true', V1_EVALUATION_KEY_SCOPE_VERIFIED: 'proj_synthetic_evaluation', OPENAI_TESTING_PROJECT_ID: 'proj_synthetic_evaluation', OPENAI_TESTING_API_KEY: 'synthetic-test-key', V1_AI_BUDGET_MICROS: '10000000', V1_AI_REQUEST_CEILING_MICROS: '10000' };
+  const flags = { CONVEX_CLOUD_URL: testingBoundary.convexUrl, V1_DATA_POLICY_APPROVED: 'false', V1_DATA_POLICY_VERSION: 'v1-privacy-2026-10-14', V1_EVALUATION_DATASET_APPROVED: 'toy-only-24-2026-10-14', V1_SYNTHETIC_EVALUATION_APPROVED: 'true', V1_SYNTHETIC_EVALUATION_POLICY_VERSION: 'toy-only-evaluation-2026-10-14', V1_EVALUATION_PROVIDER_POLICY_APPROVED: 'true', V1_AI_EVALUATION_APPROVED: 'true', V1_EVALUATION_PRICE_VERIFIED: 'gpt-6-luna-standard-2026-10-14', V1_EVALUATION_INPUT_ACCOUNTING_VERIFIED: 'true', V1_EVALUATION_PROVIDER_LIMIT_VERIFIED: 'true', V1_EVALUATION_KEY_SCOPE_VERIFIED: 'proj_synthetic_evaluation', OPENAI_TESTING_PROJECT_ID: 'proj_synthetic_evaluation', OPENAI_TESTING_API_KEY: 'synthetic-test-key', V1_AI_BUDGET_MICROS: '10000000', V1_AI_REQUEST_CEILING_MICROS: '10000' };
   for (const [name, value] of Object.entries(flags)) vi.stubEnv(name, value);
   vi.stubEnv('V1_EVALUATION_PRIVACY_VERSION', 'v1-privacy-2026-10-14');
   vi.stubEnv('V1_EVALUATION_PRICE_VERIFIED_AT',new Date().toISOString());
 }
 beforeEach(enable); afterEach(() => vi.unstubAllEnvs());
 async function setup() { const t = convexTest(schema, modules); const invite = await t.mutation(m('testingAccess:invite'), { evaluation: true }); return { t, invitation: invite.capability }; }
-const run = (t: ReturnType<typeof convexTest>, invitation: string, kind = 'generation', previous: unknown[] = []) => t.action(a('aiEvaluation:run'), { invitation, caseId: 'case-03', kind, image: kind === 'recognition' ? image : '', previous });
+const run = (t: Pick<ReturnType<typeof convexTest>, 'action'>, invitation: string, kind = 'generation', previous: unknown[] = []) => t.action(a('aiEvaluation:run'), { invitation, caseId: 'case-03', kind, image: kind === 'recognition' ? image : '', previous });
 function reply(payload: unknown, usage = { input_tokens: 1200, input_tokens_details: { cached_tokens: 0 }, output_tokens: 300, output_tokens_details: { reasoning_tokens: 20 }, total_tokens: 1500 }) { return Response.json({ model: 'gpt-6-luna', service_tier: 'default', status: 'completed', usage, output: [{ content: [{ type: 'output_text', text: JSON.stringify(payload) }] }] }); }
 function mockPair(payload: unknown) {
   mockProviderOnce(body => { expect(body.model).toBe('gpt-6-luna'); mockProviderOnce(() => reply(payload)); return Response.json({ object: 'response.input_tokens', input_tokens: 1200 }); }, 'input_tokens');
 }
-test('the changed budget decision does not bypass incomplete R1, missing key or unverified costs', async () => {
+test('synthetic evaluation requires its own scope approval, testing key and verified costs', async () => {
   const { t, invitation } = await setup();
-  for (const flag of ['V1_R1_READINESS_APPROVED', 'OPENAI_TESTING_API_KEY', 'V1_EVALUATION_INPUT_ACCOUNTING_VERIFIED', 'V1_EVALUATION_PROVIDER_LIMIT_VERIFIED']) {
+  for (const flag of ['V1_EVALUATION_DATASET_APPROVED', 'V1_SYNTHETIC_EVALUATION_APPROVED', 'V1_SYNTHETIC_EVALUATION_POLICY_VERSION', 'V1_EVALUATION_PROVIDER_POLICY_APPROVED', 'OPENAI_TESTING_API_KEY', 'V1_EVALUATION_INPUT_ACCOUNTING_VERIFIED', 'V1_EVALUATION_PROVIDER_LIMIT_VERIFIED']) {
     vi.stubEnv(flag, ''); await expect(run(t, invitation)).rejects.toThrow('evaluation'); enable();
   }
   expect(await t.run(ctx => ctx.db.query('aiEvaluations').take(1))).toEqual([]);
@@ -121,4 +119,25 @@ test('usage above the output limit is retained as uncertain and prevents further
   await expect(run(t,invitation)).rejects.toThrow('stopped');
   expect((await t.run(ctx=>ctx.db.query('aiEvaluations').take(1)))[0]).toMatchObject({state:'uncertain',inputTokens:1200,outputTokens:1501});
   await expect(run(t,invitation)).rejects.toThrow('paused');
+});
+
+test('evaluation functions are internal and normal guest recognition cannot use an evaluation invitation',async()=>{
+ const {t,invitation}=await setup();const functions=await import('../../convex/aiEvaluation');
+ for(const fn of [functions.run,functions.status,functions.begin,functions.record,functions.verifyOutput,functions.halt,functions.reconcile])expect((fn as unknown as {isInternal:boolean}).isInternal).toBe(true);
+ await expect(t.action(a('recognition:recognize'),{image,invitation})).rejects.toThrow('paused');
+ await expect(t.action(a('play:discover'),{image,age:3})).rejects.toThrow('Legacy');
+ expect(await t.run(ctx=>ctx.db.query('aiEvaluations').take(1))).toEqual([]);
+});
+test('synthetic invitation cannot be bound to or used by a parent account',async()=>{
+ const {t,invitation}=await setup();const id=await t.run(ctx=>ctx.db.insert('users',{name:'Synthetic account for authorization regression'}));const signed=t.withIdentity({subject:id+'|synthetic-session'});
+ await expect(t.mutation(m('testingAccess:invite'),{evaluation:true,owner:id})).rejects.toThrow('not parent');
+ await expect(run(signed,invitation)).rejects.toThrow('not parent');
+ expect(await t.run(ctx=>ctx.db.query('aiEvaluations').take(1))).toEqual([]);
+});
+
+test('an unreviewed image or known unsafe case is refused without provider calls',async()=>{
+ const {t,invitation}=await setup();const {evaluationCases}=await import('../../shared/evaluationCorpus');const item=evaluationCases[2];
+ try{item.privacyReviewed=false;await expect(run(t,invitation)).rejects.toThrow('corpus');item.privacyReviewed=true;item.generationAllowed=false;await expect(run(t,invitation)).rejects.toThrow('not permitted');}
+ finally{item.privacyReviewed=true;item.generationAllowed=true;}
+ expect(await t.run(ctx=>ctx.db.query('aiEvaluations').take(1))).toEqual([]);
 });

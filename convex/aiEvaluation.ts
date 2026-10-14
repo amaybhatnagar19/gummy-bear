@@ -9,7 +9,7 @@ import { activityRequest, parseGeneratedBody } from './play';
 import { recognitionRequest, parseRecognitionBody } from './recognition';
 import { activityValidator } from './activityResponses';
 const kind = v.union(v.literal('recognition'), v.literal('generation'));
-const corpusReady = () => new Set(evaluationCases.filter(c => c.licenseVerified && c.imageSha256 && c.asset).map(c => c.imageSha256)).size;
+const corpusReady = () => new Set(evaluationCases.filter(c => c.licenseVerified && c.privacyReviewed && c.imageSha256 && c.asset).map(c => c.imageSha256)).size;
 export const status = internalQuery({ args: {}, returns: v.object({ blockers: v.array(v.string()), corpusReady: v.number(), budgetCeilingMicros: v.number(), reservedMicros: v.number(), effectiveReservedMicros:v.number(), providerCostMicros:v.union(v.number(),v.null()), projectId:v.union(v.string(),v.null()), halted: v.boolean() }), handler: async ctx => {
   const ledger = await ctx.db.query('testingBudget').withIndex('by_key', q => q.eq('key', 'initial-14-days')).unique();
   const blockers=evaluationBlockers();
@@ -69,7 +69,7 @@ export const run = internalAction({
   handler: async (ctx, args) => {
     requireEvaluation();
     const item = evaluationCases.find(c => c.id === args.caseId);
-    if (corpusReady() < 20 || !item?.licenseVerified || !item.imageSha256 || !item.asset) throw new ConvexError('The evaluation corpus needs 20–30 distinct approved toy photographs before live testing.');
+    if (corpusReady() < 20 || !item?.licenseVerified || !item.privacyReviewed || !item.imageSha256 || !item.asset) throw new ConvexError('The evaluation corpus needs 20–30 distinct approved toy photographs before live testing.');
     if (args.previous.length > 100) throw new ConvexError('Too much evaluation history.');
     if (args.kind === 'generation' && (!item.generationAllowed || !item.confirmedToys.length || args.image)) throw new ConvexError('Generation is not permitted for this corpus case or photo.');
     if (args.kind === 'recognition') {

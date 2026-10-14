@@ -1,14 +1,16 @@
 import { ConvexError } from 'convex/values';
+import { EVALUATION_DATASET_VERSION } from '../shared/evaluationCorpus';
 import { testingBoundary } from '../shared/testingDeployment.js';
-import { PRIVACY_VERSION } from '../shared/privacy';
-import { fullAccountDeletionImplemented } from './privacy';
-import { EVALUATION_PRICE_VERSION, EVALUATION_MAX_MICROS, EVALUATION_RESERVE_MICROS } from '../shared/aiEvaluation';
+import { SYNTHETIC_EVALUATION_POLICY_VERSION, EVALUATION_PRICE_VERSION, EVALUATION_MAX_MICROS, EVALUATION_RESERVE_MICROS } from '../shared/aiEvaluation';
 export function evaluationBlockers() {
   const blockers: string[] = [];
   if (process.env.CONVEX_CLOUD_URL !== testingBoundary.convexUrl) blockers.push('isolated deployment');
-  if (!fullAccountDeletionImplemented) blockers.push('R1 account identity-deletion implementation');
-  // Evaluation approval never opens general signup/family-data collection.
-  if (process.env.V1_EVALUATION_PRIVACY_VERSION !== PRIVACY_VERSION || process.env.V1_R1_READINESS_APPROVED !== 'true') blockers.push('R1 privacy, consent, retention and deletion readiness');
+  // Only internal, allowlisted toy-only benchmarks use this separate policy.
+  // Real-parent privacy/auth deletion gates remain unchanged in v1Policy.
+  if (process.env.V1_SYNTHETIC_EVALUATION_APPROVED !== 'true' || process.env.V1_SYNTHETIC_EVALUATION_POLICY_VERSION !== SYNTHETIC_EVALUATION_POLICY_VERSION) blockers.push('approved synthetic-only evaluation scope');
+  if (process.env.V1_EVALUATION_DATASET_APPROVED !== EVALUATION_DATASET_VERSION) blockers.push('approved toy-only dataset version and permissions');
+  if (process.env.V1_EVALUATION_PROVIDER_POLICY_APPROVED !== 'true') blockers.push('evaluation provider processing and retention policy');
+  if (process.env.V1_DATA_POLICY_APPROVED === 'true' || process.env.V1_PAID_AI_APPROVED === 'true') blockers.push('normal collection and PWA AI gates must remain closed');
   if (process.env.V1_AI_EVALUATION_APPROVED !== 'true') blockers.push('evaluation activation');
   if (process.env.V1_EVALUATION_PRICE_VERIFIED !== EVALUATION_PRICE_VERSION) blockers.push('current model availability and pricing');
   const checked = Date.parse(process.env.V1_EVALUATION_PRICE_VERIFIED_AT ?? '');

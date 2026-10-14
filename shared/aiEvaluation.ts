@@ -1,3 +1,4 @@
+export const SYNTHETIC_EVALUATION_POLICY_VERSION = 'toy-only-evaluation-2026-10-14';
 export const EVALUATION_MODEL = 'gpt-6-luna';
 export const EVALUATION_PRICE_VERSION = 'gpt-6-luna-standard-2026-10-14';
 export const EVALUATION_MAX_MICROS = 10_000_000; // USD, one dollar = one million micros.
