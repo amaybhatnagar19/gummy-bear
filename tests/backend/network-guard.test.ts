@@ -72,6 +72,13 @@ test('installing a mock does not replace the protected fetch function', () => {
   process.env.OPENAI_API_KEY = 'synthetic-test-key';
   expect(fetch).toBe(guard);
 });
+test('counting mocks permit only the exact single-use endpoint and retain fetch/socket protection', async () => {
+  mockProviderOnce(() => Response.json({ object: 'response.input_tokens', input_tokens: 123 }), 'input_tokens');
+  await expectNetworkBlocked(() => fetch('https://api.openai.com/v1/responses', request));
+  expect((await (await fetch('https://api.openai.com/v1/responses/input_tokens', request)).json()).input_tokens).toBe(123);
+  await expectNetworkBlocked(() => fetch('https://api.openai.com/v1/responses/input_tokens', request));
+  await expectNetworkBlocked(() => new net.Socket().connect(443, 'unexpected.invalid'));
+});
 
 test('unused mocks and synthetic keys do not survive into the next test', async () => {
   expect(process.env.OPENAI_API_KEY).toBeUndefined();

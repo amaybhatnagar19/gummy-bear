@@ -63,3 +63,10 @@ Signed-in generation now commits suggestions on the server before responding, wi
 - [ ] Isolated cloud installation of follow-up source/schema: not performed because owner prohibited deployment in this task.
 
 Final local verification: 345 guarded Vitest tests/22 files + 3 Node tests, 15 network-isolated browser checks, strict application/tests/config TypeScript and production/testing builds passed. All data synthetic; only testing metadata/capability reads touched the cloud. No paid AI, identity deletion, production access or remote writes. Starting checkpoint `45fdb4f`; verified source checkpoint `7c735bf`.
+
+
+## Bounded live-AI evaluation preparation — 14 October 2026
+
+Decision 5A authorizes up to $10 USD conditionally; it replaces the previous disabled-only budget decision without activating AI. Testing-only reservation/usage infrastructure and deterministic tests are implemented. Safe R1 source/schema and evaluation functions are now installed in `gummy-bear-v1-testing` only. R1 identity deletion and retention approvals remain incomplete; separate provider credentials/cap, full cost accounting and 20 reviewed photos are missing. No live requests or spending occurred; general collection/payment/AI gates remain closed. See [AI_EVALUATION_REPORT.md](AI_EVALUATION_REPORT.md) for exact prerequisites, setup, tests and rollback.
+
+Verification: 364 guarded Vitest tests plus 3 Node tests, strict TypeScript and production/testing builds passed. Pilot command refused activation before provider calls.

@@ -3,22 +3,26 @@ import { getAuthUserId } from '@convex-dev/auth/server';
 import { v, ConvexError } from 'convex/values';
 import { requireCollectionConsent, requireNoDeletion } from './privacyAccess';
 import { requireLiveAI } from './v1Policy';
+import { requireEvaluation } from './evaluationPolicy';
+import { EVALUATION_MAX_MICROS, EVALUATION_RESERVE_MICROS, effectiveReservedMicros } from '../shared/aiEvaluation';
 export async function inviteDigest(value: string) {
   if (!/^[a-f0-9]{64}$/.test(value)) throw new ConvexError('Use the testing invitation supplied by the owner.');
   return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value))), b => b.toString(16).padStart(2, '0')).join('');
 }
 export const invite = internalMutation({
   args: {
-    owner: v.optional(v.id('users'))
+    owner: v.optional(v.id('users')),
+    evaluation: v.optional(v.boolean())
   },
   returns: v.object({
     id: v.id('testingInvites'),
     capability: v.string()
   }),
   handler: async (ctx, {
-    owner
+    owner, evaluation
   }) => {
-    requireLiveAI();
+    if (evaluation) requireEvaluation(); else requireLiveAI();
+    if (evaluation && owner) throw new ConvexError('Evaluation invitations are for synthetic operator slots, not parent accounts.');
     const all = await ctx.db.query('testingInvites').take(11);
     if (all.length >= 10) throw new ConvexError('Ten testing invitations have already been allocated.');
     if (owner && !(await ctx.db.get(owner))) throw new ConvexError('This account is unavailable.');
@@ -43,6 +47,7 @@ export const invite = internalMutation({
 export const reserve = internalMutation({
   args: {
     invitation: v.optional(v.string()),
+    evaluation: v.optional(v.boolean()),
     kind: v.optional(v.union(v.literal('recognition'), v.literal('generation')))
   },
   returns: v.object({
@@ -51,10 +56,11 @@ export const reserve = internalMutation({
   }),
   handler: async (ctx, {
     kind = 'generation',
-    invitation
+    invitation, evaluation
   }) => {
-    requireLiveAI();
+    if (evaluation) requireEvaluation(); else requireLiveAI();
     const user = await getAuthUserId(ctx);
+    if (evaluation && user) throw new ConvexError('Evaluation uses synthetic operator invitations, not parent accounts.');
     if(user&&!await ctx.db.get(user))throw new ConvexError('This testing account is unavailable.');
     if(user)await requireCollectionConsent(ctx,user);
     let invite = user ? await ctx.db.query('testingInvites').withIndex('by_owner', q => q.eq('owner', user)).unique() : null;
@@ -72,10 +78,13 @@ export const reserve = internalMutation({
       recognitionCalls = invite.day === day ? invite.recognitionCalls ?? 0 : 0;
     if ((kind === 'generation' ? calls : recognitionCalls) >= invite.daily) throw new ConvexError('You’ve reached today’s testing allowance. Your previous ideas are still available.');
     const budget = Number(process.env.V1_AI_BUDGET_MICROS),
-      ceiling = Number(process.env.V1_AI_REQUEST_CEILING_MICROS);
-    if (!Number.isSafeInteger(budget) || !Number.isSafeInteger(ceiling) || budget <= 0 || ceiling <= 0 || ceiling > budget) throw new ConvexError('A hard AI spending budget needs approval before live testing.');
+      ceiling = evaluation ? EVALUATION_RESERVE_MICROS : Number(process.env.V1_AI_REQUEST_CEILING_MICROS);
+    if (!Number.isSafeInteger(budget) || !Number.isSafeInteger(ceiling) || budget <= 0 || budget > EVALUATION_MAX_MICROS || ceiling <= 0 || ceiling > budget) throw new ConvexError('A hard AI spending budget up to the approved ten dollars needs verification before live testing.');
     let ledger = await ctx.db.query('testingBudget').withIndex('by_key', q => q.eq('key', 'initial-14-days')).unique();
-    if ((ledger?.reservedMicros ?? 0) + ceiling > budget) throw new ConvexError('The testing AI budget is fully reserved. Existing ideas remain available.');
+    if (ledger?.haltReason) throw new ConvexError('Testing AI is paused because evaluation usage or safety needs review.');
+    if (ledger?.evaluationLease && (ledger.evaluationActiveUntil ?? 0) <= now) throw new ConvexError('Testing AI is paused: an expired evaluation reservation needs usage review.');
+    if (evaluation && ledger?.evaluationLease) throw new ConvexError('One evaluation request is already running. Please wait.');
+    if (effectiveReservedMicros(ledger) + ceiling > budget) throw new ConvexError('The testing AI budget is fully reserved. Existing ideas remain available.');
     if (ledger) await ctx.db.patch(ledger._id, {
       reservedMicros: ledger.reservedMicros + ceiling
     });else await ctx.db.insert('testingBudget', {
@@ -83,6 +92,10 @@ export const reserve = internalMutation({
       reservedMicros: ceiling
     });
     const lease = crypto.randomUUID();
+    if (evaluation) {
+      ledger = await ctx.db.query('testingBudget').withIndex('by_key', q => q.eq('key', 'initial-14-days')).unique();
+      await ctx.db.patch(ledger!._id, {evaluationLease:lease,evaluationActiveUntil:now+90000});
+    }
     await ctx.db.patch(invite._id, {
       day,
       calls: calls + (kind === 'generation' ? 1 : 0),
@@ -111,6 +124,8 @@ export const release = internalMutation({
       activeUntil: 0,
       lease: undefined
     });
+    const budget = await ctx.db.query('testingBudget').withIndex('by_key', q => q.eq('key','initial-14-days')).unique();
+    if (budget?.evaluationLease === lease) await ctx.db.patch(budget._id, {evaluationLease:undefined,evaluationActiveUntil:undefined});
     return null;
   }
 });

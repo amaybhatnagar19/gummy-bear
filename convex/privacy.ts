@@ -7,6 +7,9 @@ import { dataPolicyOpen, requireDataPolicy } from './v1Policy';
 import { testingBoundary } from '../shared/testingDeployment.js';
 import { PRIVACY_VERSION } from '../shared/privacy';
 import { authenticatedOwner, requireTestingPrivacyOperation, requireNoDeletion, recordConsent } from './privacyAccess';
+// Current requests stop at awaiting_policy. This must not be turned on by an
+// environment flag before an approved identity-deletion finalizer exists.
+export const fullAccountDeletionImplemented = false;
 const scope = v.union(v.literal('family'), v.literal('account'));
 const statusValidator = v.union(v.literal('deleting_family'), v.literal('finished_family'), v.literal('awaiting_policy'));
 const viewValidator = v.object({ status: statusValidator, familyDeleted: v.boolean(), accountDeleted: v.literal(false), deletedCount: v.number(), requestedAt: v.number() });

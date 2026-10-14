@@ -30,7 +30,22 @@ export const recognize = action({
           'Content-Type': 'application/json'
         },
         signal: AbortSignal.timeout(60000),
-        body: JSON.stringify({
+        body: JSON.stringify(recognitionRequest(image))
+      });
+      if (!response.ok) throw new ConvexError('Recognition is unavailable right now. Try again or use a clearer photo.');
+      const body = await response.json();
+      return parseRecognitionBody(body);
+    } catch (error) {
+      if (error instanceof ConvexError) throw error;
+      throw new ConvexError('We couldn’t identify the toys clearly. Try a closer photo.');
+    } finally {
+      await ctx.runMutation(internal.testingAccess.release, lease);
+    }
+  }
+});
+
+export function recognitionRequest(image:string) {
+  return {
           model: 'gpt-6-luna',
           reasoning: {
             effort: 'low'
@@ -71,10 +86,10 @@ export const recognize = action({
               }
             }
           }
-        })
-      });
-      if (!response.ok) throw new ConvexError('Recognition is unavailable right now. Try again or use a clearer photo.');
-      const body = await response.json();
+        };
+}
+
+export function parseRecognitionBody(body:any) {
       if (body.status !== 'completed') throw new Error('Incomplete');
       const raw = body.output.flatMap((o: {
         content?: {
@@ -95,11 +110,4 @@ export const recognize = action({
       });
       if (new Set(toys).size !== toys.length) throw new Error('Duplicate');
       return {toys,recognizedAt:Date.now()};
-    } catch (error) {
-      if (error instanceof ConvexError) throw error;
-      throw new ConvexError('We couldn’t identify the toys clearly. Try a closer photo.');
-    } finally {
-      await ctx.runMutation(internal.testingAccess.release, lease);
-    }
-  }
-});
+}

@@ -103,3 +103,10 @@ The compiled testing preview now uses a separate verified artifact, strips payme
 ## Privacy/deletion follow-up boundary verification
 
 14 October 2026: same isolated project/deployment metadata verified again. A read-only public capability query to this testing deployment confirmed personalData/liveAIReady/Google/emailOtp/emailReminders=false. No deployment, remote schema/configuration/credential write or synthetic remote account/deletion was performed. New privacy tables/functions remain source-only and were tested with network-guarded in-memory synthetic databases and intercepted browser replies. Real collection and live AI remain closed. The new local policy-version requirement does not set a cloud flag. See [PRIVACY_AND_DELETION_REPORT.md](PRIVACY_AND_DELETION_REPORT.md) for pending installation/activation approvals.
+
+
+## Bounded live-AI evaluation preparation — 14 October 2026
+
+Decision 5A authorizes up to $10 USD conditionally; it replaces the previous disabled-only budget decision without activating AI. Testing-only reservation/usage infrastructure and deterministic tests are implemented. Safe R1 source/schema and evaluation functions are now installed in `gummy-bear-v1-testing` only. R1 identity deletion and retention approvals remain incomplete; separate provider credentials/cap, full cost accounting and 20 reviewed photos are missing. No live requests or spending occurred; general collection/payment/AI gates remain closed. See [AI_EVALUATION_REPORT.md](AI_EVALUATION_REPORT.md) for exact prerequisites, setup, tests and rollback.
+
+Verification: 364 guarded Vitest tests plus 3 Node tests, strict TypeScript and production/testing builds passed. Pilot command refused activation before provider calls.

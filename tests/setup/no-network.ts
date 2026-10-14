@@ -19,6 +19,7 @@ class NetworkBlockedError extends Error {
 const violations: NetworkBlockedError[] = [];
 type ProviderReply = (body: Record<string, unknown>, signal: AbortSignal) => Response | Promise<Response>;
 let providerReply: ProviderReply | undefined;
+let providerEndpoint: 'responses' | 'input_tokens' = 'responses';
 
 function blocked(channel: string): never {
   const error = new NetworkBlockedError(channel);
@@ -57,7 +58,8 @@ syncBuiltinESMExports();
 
 const guardedFetch: typeof fetch = async (input, init) => {
   // There is no passthrough to the original fetch, under any circumstances.
-  if (input !== 'https://api.openai.com/v1/responses' || init?.method !== 'POST'
+  const allowed = providerEndpoint === 'responses' ? 'https://api.openai.com/v1/responses' : 'https://api.openai.com/v1/responses/input_tokens';
+  if (input !== allowed || init?.method !== 'POST'
     || new Headers(init.headers).get('authorization') !== 'Bearer synthetic-test-key'
     || new Headers(init.headers).get('content-type') !== 'application/json'
     || typeof init.body !== 'string' || !init.signal || !providerReply) {
@@ -77,9 +79,10 @@ Object.defineProperty(globalThis, 'fetch', {
   configurable: false,
 });
 
-export function mockProviderOnce(reply: ProviderReply) {
+export function mockProviderOnce(reply: ProviderReply, endpoint: 'responses' | 'input_tokens' = 'responses') {
   if (providerReply) throw new Error('A synthetic provider reply is already installed.');
   providerReply = reply;
+  providerEndpoint = endpoint;
 }
 
 export function assertNoUnexpectedNetwork() {
@@ -102,8 +105,10 @@ export async function expectNetworkBlocked(operation: () => unknown | Promise<un
 
 function resetTestState() {
   providerReply = undefined;
+  providerEndpoint = 'responses';
   // Do not read a real key. Only change the environment of this test worker.
   delete process.env.OPENAI_API_KEY;
+  delete process.env.OPENAI_TESTING_API_KEY;
 }
 
 resetTestState();

@@ -71,3 +71,10 @@ Password sign-in remains. Testing signup is denied while privacy is closed. Goog
 No frontend has been published and no production deployment performed. `npm run deploy` remains the existing Convex static-hosting production command and **must not run without explicit approval**. Resolve the blockers, approve release configuration/provider/retention decisions, test the actual isolated providers and devices, and prepare a reviewed production-specific activation plan first.
 
 Use local Git checkpoints and targeted reverts; never hard-reset unrelated work or drop populated tables. Keep the isolated connection checks when reverting product features. Do not rotate signing keys, remap identities, archive projects or alter payment records as a rollback shortcut.
+
+
+## Bounded live-AI evaluation preparation — 14 October 2026
+
+Decision 5A authorizes up to $10 USD conditionally; it replaces the previous disabled-only budget decision without activating AI. Testing-only reservation/usage infrastructure and deterministic tests are implemented. Safe R1 source/schema and evaluation functions are now installed in `gummy-bear-v1-testing` only. R1 identity deletion and retention approvals remain incomplete; separate provider credentials/cap, full cost accounting and 20 reviewed photos are missing. No live requests or spending occurred; general collection/payment/AI gates remain closed. See [AI_EVALUATION_REPORT.md](AI_EVALUATION_REPORT.md) for exact prerequisites, setup, tests and rollback.
+
+Verification: 364 guarded Vitest tests plus 3 Node tests, strict TypeScript and production/testing builds passed. Pilot command refused activation before provider calls.

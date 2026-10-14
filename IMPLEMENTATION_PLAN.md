@@ -97,3 +97,10 @@ No routine phase approval is needed for the already authorized implementation, b
 Implement locally the parent's approved no-original-photo retention, label+age-only requirement, optional DOB/interests and family retention until explicit removal. Version acknowledgment/contact choices and keep guest expiry at 24 hours. Build owner-only bounded removal with explicit confirmation, persistent progress and retries. An account request stops after family removal at pending policy, without deleting identity/sessions or changing financial records. Details and remaining owner decisions are in [PRIVACY_AND_DELETION_REPORT.md](PRIVACY_AND_DELETION_REPORT.md).
 
 Completed source/test work does not authorize deployment. No isolated backend update, production change, real-data collection or live AI activation in this follow-up. Next dependencies: approve legal/operational/financial retention and identity-finalization plan, separately authorize isolated source installation/finalization testing, verify complete deletion and processor/backup behavior, then approve any real collection. AI budget/provider activation remains separately prohibited.
+
+
+## Bounded live-AI evaluation preparation — 14 October 2026
+
+Decision 5A authorizes up to $10 USD conditionally; it replaces the previous disabled-only budget decision without activating AI. Testing-only reservation/usage infrastructure and deterministic tests are implemented. Safe R1 source/schema and evaluation functions are now installed in `gummy-bear-v1-testing` only. R1 identity deletion and retention approvals remain incomplete; separate provider credentials/cap, full cost accounting and 20 reviewed photos are missing. No live requests or spending occurred; general collection/payment/AI gates remain closed. See [AI_EVALUATION_REPORT.md](AI_EVALUATION_REPORT.md) for exact prerequisites, setup, tests and rollback.
+
+Verification: 364 guarded Vitest tests plus 3 Node tests, strict TypeScript and production/testing builds passed. Pilot command refused activation before provider calls.
