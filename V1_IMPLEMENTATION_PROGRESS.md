@@ -82,3 +82,16 @@ Implemented a separate internal, testing-only synthetic evaluation policy; prese
 Read-only control-plane verification identifies the actual existing production as `sensible-avocet-370` in `build-sprint-app`; `intent-poodle-393` is its development deployment, and `blissful-dotterel-906` remains isolated testing. Local candidate adds closed production AI/signup/family gates, preserves existing password login and ₹99/month infrastructure, and guards deployment by verified target, exact approved commit and clean source. No production configuration/data writes or deployment occurred.
 
 Verification: 384 guarded Vitest tests +3 Node tests; strict TypeScript; production/testing builds; 18 network-isolated browser checks plus final 2-check artifact/screenshots recheck passed. Actual production's 14 schema definitions are unchanged; 11 existing V1 additive tables remain pending production installation. Full identity deletion/policy activation and full functional V1 remain blocked. See [PRODUCTION_READINESS_REPORT.md](PRODUCTION_READINESS_REPORT.md) for the paused-release activation matrix, limits and approval/rollback instructions.
+
+
+## Option C safe completion — 15 October 2026
+
+- [x] Owner-only bounded identity/session inventory and resumable removal-batch preparation; full account finalizer remains disabled pending legal/operational decisions.
+- [x] Explicit privacy withdrawal, email opt-out and no recreation of deleted consent; legacy identity/password access preserved.
+- [x] Full-input token/cost preflight, verified-usage checks, conservative reservations and uncertainty halt for normal V1; synthetic evaluation remains separate.
+- [x] Child deletion/capacity/history edge cases, provider error redaction, expired-session recovery and skip-link fixes.
+- [x] Isolated testing installation with all collection/AI/Google/OTP/email gates false; production Option A bytes unchanged.
+- [x] 418 guarded Vitest +3 Node tests, strict TypeScript, production/testing/Option A builds; 21 safe browser checks plus4 Option A checks.
+- [ ] Actual OTP/reset/reminder transport, verified Google login, legal deletion finalization, production access/spending activation, real-provider quality and physical-device checks remain blocked.
+
+See [OPTION_C_COMPLETION_REPORT.md](OPTION_C_COMPLETION_REPORT.md) and [OPTION_C_DEVICE_CHECKLIST.md](OPTION_C_DEVICE_CHECKLIST.md). No production deployment, environment/data writes or paid inference; one metadata-only model GET confirmed production key visibility of `gpt-6-luna`, not billing readiness.

@@ -11,3 +11,5 @@ test('Option A publication is static upload only; explicit production and existi
  expect(optionAUploadArguments).toEqual(['node_modules/@convex-dev/static-hosting/dist/cli/index.js','upload','--dist','dist-option-a','--prod','--component','staticHosting']);
  expect(readFileSync('src/optionA.tsx','utf8')).not.toMatch(/serviceWorker\.register|features\/app|convex\/react/);
 });
+
+test('Option A removes ignored platform metadata only from a generated artifact',async()=>{const{mkdtempSync,mkdirSync,writeFileSync,existsSync,rmSync}=await import('node:fs');const{tmpdir}=await import('node:os');const dir=mkdtempSync(tmpdir()+'/gummy-option-a-');try{mkdirSync(dir+'/assets');writeFileSync(dir+'/.DS_Store','synthetic');writeFileSync(dir+'/assets/Thumbs.db','synthetic');writeFileSync(dir+'/assets/keep.js','reviewed');const{removePlatformMetadata}=await import('../../scripts/prepare-option-a.mjs');removePlatformMetadata(dir);expect(existsSync(dir+'/.DS_Store')).toBe(false);expect(existsSync(dir+'/assets/Thumbs.db')).toBe(false);expect(existsSync(dir+'/assets/keep.js')).toBe(true);}finally{rmSync(dir,{recursive:true,force:true});}});

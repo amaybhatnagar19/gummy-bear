@@ -73,8 +73,9 @@ export async function isolate(page: Page, account: 'guest' | 'paid' | 'payment' 
       }
       if (message.type === 'Mutation') {
         calls.push(message.udfPath);
+        if(message.udfPath==='privacy:unsubscribeEmail'){socket.send(JSON.stringify({type:'MutationResponse',requestId:message.requestId,success:true,result:null,ts:version.ts,logLines:[]}));transition({});return;}
         if(failDeletionOnce&&message.udfPath==='privacy:requestAccountDeletion'&&calls.filter(name=>name==='privacy:requestAccountDeletion').length===1){socket.send(JSON.stringify({type:'MutationResponse',requestId:message.requestId,success:false,result:'Synthetic deletion failure',ts:version.ts,logLines:[]}));return;}
-        if(family&&['family:saveChild','family:saveToy','family:updateActivity','family:savePreferences','family:deleteChild','family:deleteFamilyData','privacy:acknowledge','privacy:deleteFamily','privacy:requestAccountDeletion','privacy:resumeDeletion'].includes(message.udfPath)){
+        if(family&&['family:saveChild','family:saveToy','family:updateActivity','family:savePreferences','family:deleteChild','family:deleteFamilyData','privacy:acknowledge','privacy:withdrawAcknowledgment','privacy:deleteFamily','privacy:requestAccountDeletion','privacy:resumeDeletion'].includes(message.udfPath)){
           const args=message.args[0];let result:any=null;
           if(message.udfPath==='family:saveChild'||message.udfPath==='family:saveToy'){
             const rows=message.udfPath==='family:saveChild'?family.children:family.toys;
@@ -84,6 +85,7 @@ export async function isolate(page: Page, account: 'guest' | 'paid' | 'payment' 
           if(message.udfPath==='family:updateActivity'){const row=family.activities.find(a=>a._id===args.id);if(!row)throw new Error('Unexpected synthetic activity ID');Object.assign(row,args);if(args.tried){row.triedAt=Date.now();(family.attempts??=[]).push({_id:'synthetic-attempt-'+family.attempts.length,owner:'synthetic-parent',activityId:row._id,at:Date.now(),feedback:args.feedback});}else if(args.feedback){const last=family.attempts?.filter(a=>a.activityId===row._id).at(-1);if(last)last.feedback=args.feedback;}}
           if(message.udfPath==='family:savePreferences')family.preferences={_id:'synthetic-preferences',owner:'synthetic-parent',photoRetention:'none',...args};
           if(message.udfPath==='family:deleteChild')family.children=family.children.filter(c=>c._id!==args.id);
+          if(message.udfPath==='privacy:withdrawAcknowledgment'){privacy.acknowledged=false;family.policyOpen=false;if(family.preferences)family.preferences.emailOptIn=false;}
           if(message.udfPath==='privacy:acknowledge'){privacy.acknowledged=true;family.policyOpen=true;}
           if(['privacy:deleteFamily','privacy:requestAccountDeletion'].includes(message.udfPath)){family.children=[];family.toys=[];family.activities=[];family.attempts=[];family.preferences=null;family.policyOpen=false;privacy.acknowledged=false;result={status:message.udfPath==='privacy:requestAccountDeletion'?'awaiting_policy':'finished_family',familyDeleted:true,accountDeleted:false,deletedCount:3,requestedAt:Date.now()};privacy[message.udfPath==='privacy:requestAccountDeletion'?'accountDeletion':'familyDeletion']=result;}
           if(message.udfPath==='privacy:resumeDeletion')result=privacy.accountDeletion??privacy.familyDeletion;

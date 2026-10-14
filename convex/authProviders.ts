@@ -9,7 +9,7 @@ export function googleProvider() {
       }
     },
     profile(profile) {
-      if (!profile.email_verified || !profile.email) throw new Error('Use a verified Google email address.');
+      if (profile.email_verified !== true || typeof profile.email !== 'string' || !profile.email || typeof profile.sub !== 'string' || !profile.sub) throw new Error('Use a verified Google email address.');
       return {
         id: profile.sub,
         email: profile.email.toLowerCase()
@@ -34,7 +34,7 @@ export function emailOtpProvider(deliver: (email: string, code: string) => Promi
         identifier,
         token
       }) {
-        await deliver(identifier, token);
+        try { await deliver(identifier, token); } catch { throw new Error('The email code could not be delivered. Try again later or use your existing sign-in method.'); }
       }
     }),
     maxAge: 600,

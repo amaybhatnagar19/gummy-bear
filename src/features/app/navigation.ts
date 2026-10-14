@@ -6,7 +6,7 @@ export const destinations = [
   { path: '/app/activities', label: 'Activities' },
   { path: '/app/profile', label: 'Profile' },
 ] as const;
-export type AppRoute = 'start' | 'home' | 'toys' | 'activities' | 'profile' | 'sign-in' | 'sign-up' | 'payment' | 'recognize' | 'age' | 'ideas' | 'idea' | 'rediscover' | 'missing';
+export type AppRoute = 'start' | 'home' | 'toys' | 'activities' | 'profile' | 'sign-in' | 'sign-up' | 'payment' | 'recognize' | 'age' | 'ideas' | 'idea' | 'rediscover' | 'unsubscribe' | 'missing';
 export function appRoute(pathname: string): AppRoute {
   const path = pathname.replace(/\/+$/, '') || '/';
   if (path === '/app' || path === '/app/start') return 'start';
@@ -14,7 +14,7 @@ export function appRoute(pathname: string): AppRoute {
   if (/^\/app\/activities\/[^/]+$/.test(path)) return 'activities';
   if (/^\/app\/idea\/\d+$/.test(path)) return 'idea';
   const route = path.slice('/app/'.length);
-  return path.startsWith('/app/') && ['home', 'toys', 'activities', 'profile', 'sign-in', 'sign-up', 'payment', 'recognize', 'age', 'ideas', 'rediscover'].includes(route)
+  return path.startsWith('/app/') && ['home', 'toys', 'activities', 'profile', 'sign-in', 'sign-up', 'payment', 'recognize', 'age', 'ideas', 'rediscover', 'unsubscribe'].includes(route)
     ? route as AppRoute : 'missing';
 }
 // Internal app navigation only; reject external URLs and accidental public routes.

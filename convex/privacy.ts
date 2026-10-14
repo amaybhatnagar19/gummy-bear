@@ -116,3 +116,21 @@ export const continueDeletion = internalMutation({
 
 // No browser-supplied target; never returns identifiers, secrets or token values.
 export const identityReadiness = query({args:{},returns:v.object({accounts:v.number(),sessions:v.number(),refreshTokens:v.number(),verificationCodes:v.number(),verifiers:v.number(),truncated:v.boolean(),identityRemovalEnabled:v.literal(false)}),handler:async ctx=>{requireTestingPrivacyOperation();return identityDeletionPlan(ctx,await authenticatedOwner(ctx));}});
+
+// Unsubscribe proofs authorize only turning reminders off, never reading family data.
+// No proof is issued and no email is sent until a provider/policy is approved.
+export const unsubscribeEmail=mutation({args:{token:v.string()},returns:v.null(),handler:async(ctx,{token})=>{
+ requireTestingPrivacyOperation();if(!/^[a-f0-9]{64}$/.test(token))return null;
+ const digest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token))),x=>x.toString(16).padStart(2,'0')).join('');
+ const pref=await ctx.db.query('preferences').withIndex('by_email_unsubscribe',q=>q.eq('emailUnsubscribeDigest',digest)).unique();
+ if(pref)await ctx.db.patch(pref._id,{emailOptIn:false,emailUnsubscribeDigest:undefined});return null;
+}});
+
+export const withdrawAcknowledgment=mutation({args:{},returns:v.null(),handler:async ctx=>{
+ requireTestingPrivacyOperation();const user=await authenticatedOwner(ctx);
+ const consent=await ctx.db.query('privacyConsents').withIndex('by_owner_scope',q=>q.eq('owner',user).eq('scope','privacy')).unique();
+ // Do not recreate a record already erased by an in-progress deletion.
+ if(consent)await ctx.db.patch(consent._id,{granted:false,updatedAt:Date.now()});
+ const pref=await ctx.db.query('preferences').withIndex('by_owner',q=>q.eq('owner',user)).unique();if(pref)await ctx.db.patch(pref._id,{emailOptIn:false,emailUnsubscribeDigest:undefined});
+ return null;
+}});

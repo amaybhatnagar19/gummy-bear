@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => {
       server.middlewares.use((req, res, next) => {
         let path = req.url || '';
         try { path = decodeURIComponent(decodeURIComponent(path)); } catch { res.statusCode = 400; res.end(); return; }
-        if (/(?:^|\/)payments(?:\/|\?|$)/.test(path)) { res.statusCode = 403; res.end('Payment collection is unavailable in isolated testing.'); return; }
+        if (/(?:^|\/)payments(?:\/|\?|$)/.test(path) || /(?:^|\/)assets\/index-(?:ARx4V7n1\.js|CdxPm9Ml\.css)(?:\?|$)/.test(path)) { res.statusCode = 403; res.end('Payment collection is unavailable in isolated testing.'); return; }
         next();
       });
     } }] : [],

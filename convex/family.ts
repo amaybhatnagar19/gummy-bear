@@ -146,10 +146,11 @@ async function persistSuggestions(ctx:MutationCtx,args:{activities:Activity[];ag
       activities: args.activities
     }, args.age).activities;
     const history = await ctx.db.query('activities').withIndex('by_owner', q => q.eq('owner', user)).order('desc').take(501);
-    if (history.length + accepted.length > 500) throw new ConvexError('Your activity collection has reached the testing limit.');
+    const distinct = accepted.filter(activity=>!history.some(h=>activitiesRepeat(h.activity,activity)));
+    if (history.length + distinct.length > 500) throw new ConvexError('Your activity collection has reached the testing limit.');
     const ids: Id<'activities'>[] = [];
     const persisted:Activity[]=[];
-    for (const activity of accepted) {
+    for (const activity of distinct) {
       if (!history.some(h=>activitiesRepeat(h.activity,activity))) {
         ids.push(await ctx.db.insert('activities', {
           owner: user,
@@ -281,9 +282,11 @@ export const deleteChild = mutation({
     requireTestingPrivacyOperation();
     const user = await owner(ctx, false);
     const child = await ctx.db.get(id);
-    if (child?.owner !== user) throw new ConvexError('This child profile is unavailable.');
+    if(!child)return null;
+    if (child.owner !== user) throw new ConvexError('This child profile is unavailable.');
     for (const table of ['toys', 'activities'] as const) {
       const rows = await ctx.db.query(table).withIndex('by_owner', q => q.eq('owner', user)).take(501);
+      if(rows.length>500)throw new ConvexError('Use family-data removal for this large collection; the child profile was not removed.');
       for (const row of rows) if (row.children.includes(id)) await ctx.db.patch(row._id, {
         children: row.children.filter(x => x !== id)
       });
