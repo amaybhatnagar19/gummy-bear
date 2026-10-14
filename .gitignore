@@ -15,3 +15,5 @@ dist-v1-testing/
 
 # Private release rollback artifacts; never account/database exports.
 .release-backups/
+
+dist-option-a/

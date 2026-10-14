@@ -13,7 +13,9 @@
     "build:testing": "tsc --noEmit && vite build --mode development --outDir dist-v1-testing && node scripts/prepare-testing-build.mjs",
     "preview:testing": "node scripts/serve-testing-build.mjs",
     "release:check": "node scripts/production-preflight.mjs",
-    "predeploy": "node scripts/production-preflight.mjs --before-deploy"
+    "predeploy": "node scripts/production-preflight.mjs --before-deploy",
+    "build:option-a": "tsc --noEmit && vite build --config vite.option-a.config.ts && node scripts/prepare-option-a.mjs",
+    "release:option-a": "node scripts/release-option-a.mjs"
   },
   "keywords": [],
   "author": "",

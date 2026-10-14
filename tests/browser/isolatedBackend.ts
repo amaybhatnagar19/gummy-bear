@@ -8,7 +8,7 @@ export const testingStorageNamespace = testingBackendURL.replace(/[^a-zA-Z0-9]/g
 const expectedHost = new URL(testingBackendURL).hostname;
 
 // Synthetic protocol replies only. This helper never connects to a remote server.
-export async function isolate(page: Page, account: 'guest' | 'paid' | 'payment' = 'guest', flow = false, family?: {policyOpen:boolean;children:any[];toys:any[];activities:any[];preferences:any;attempts?:any[]}, failDeletionOnce = false, closedRelease = false, productionBuild = false) {
+export async function isolate(page: Page, account: 'guest' | 'paid' | 'payment' = 'guest', flow = false, family?: {policyOpen:boolean;children:any[];toys:any[];activities:any[];preferences:any;attempts?:any[]}, failDeletionOnce = false, closedRelease = false, productionBuild = false, legacy = false) {
   const expectedHost=new URL(productionBuild?productionTarget.cloudUrl:testingBackendURL).hostname;
   const testingStorageNamespace=(productionBuild?productionTarget.cloudUrl:testingBackendURL).replace(/[^a-zA-Z0-9]/g,'');
   const calls: string[] = [];
@@ -17,6 +17,7 @@ export async function isolate(page: Page, account: 'guest' | 'paid' | 'payment' 
   await page.route('**/*', async route => {
     const url = new URL(route.request().url());
     if (['127.0.0.1', 'localhost'].includes(url.hostname)) return route.continue();
+    if(legacy && url.hostname==='fonts.googleapis.com')return route.fulfill({body:'',contentType:'text/css'});
     if (url.hostname !== expectedHost) {
       await route.abort();
       throw new Error('Unexpected outbound browser request blocked.');
@@ -96,6 +97,7 @@ export async function isolate(page: Page, account: 'guest' | 'paid' | 'payment' 
         calls.push(message.udfPath);
         if (flow && message.udfPath === 'recognition:recognize') { socket.send(JSON.stringify({type:'ActionResponse',requestId:message.requestId,success:true,result:{toys:['brown teddy'],recognizedAt:Date.now()},logLines:[]}));return; }
         if (flow && message.udfPath === 'v1Ideas:generate') { if(message.args[0].image!=='')throw new Error('Confirmed-toy generation must not resend a photo'); const toy=message.args[0].confirmedToys[0]; const count=calls.filter(c=>c==='v1Ideas:generate').length;socket.send(JSON.stringify({type:'ActionResponse',requestId:message.requestId,success:count===1,result:count===1?{schemaVersion:2,outcome:'success',limitation:null,toys:[toy],activities:[{category:'creative_adventure',title:'A tiny journey',durationMinutes:5,materials:[toy],toyReferences:[toy],steps:[`Hold the ${toy} and tell a pretend travel story.`,`Take turns describing where the ${toy} goes next.`],parentRole:'Sit together and help your child take turns.',safetyNotes:['Use an intact age-appropriate toy.']}]}:'Synthetic timeout. Your previous ideas are still here.',logLines:[]}));return; }
+        if(legacy&&message.udfPath==='play:discover'){const args=message.args[0];if(Object.keys(args).some(k=>!['image','age','visitorToken'].includes(k)))throw new Error('Legacy request contract changed');socket.send(JSON.stringify({type:'ActionResponse',requestId:message.requestId,success:true,result:{toys:['synthetic teddy'],ideas:[{title:'Teddy trip',instructions:'Move the teddy along the sofa.'},{title:'Teddy story',instructions:'Tell a story together.'},{title:'Teddy greeting',instructions:'Wave hello together.'}],raw:'synthetic'},logLines:[]}));return;}
         if (message.udfPath !== 'auth:signOut') throw new Error(`D1 must not call AI or create accounts: ${message.udfPath}`);
         socket.send(JSON.stringify({ type: 'ActionResponse', requestId: message.requestId, success: true, result: null, logLines: [] }));
       }
