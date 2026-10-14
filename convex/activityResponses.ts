@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { parseActivityResponse, formatActivityInstructions, type StructuredResult, type LegacyResult } from '../shared/activityContract';
+import { assessActivitySafety } from './activitySafetyContext';
 import { isSuitableActivity } from './activitySafety';
 import { deduplicateActivities } from './activityDuplicates';
 
@@ -16,13 +17,14 @@ export const structuredResultValidator = v.object({
 export const legacyResultValidator = v.object({
   toys: v.array(v.string()), ideas: v.array(v.object({ title: v.string(), instructions: v.string() })), raw: v.string(),
 });
-export function limitationResult(toys: string[] = []): StructuredResult {
-  return { schemaVersion: 2, outcome: 'limitation', limitation: limitationMessage, toys, activities: [] };
+export function limitationResult(toys: string[] = [], reason: 'unknown'|'safety'|'quality'|'repetition' = 'unknown'): StructuredResult {
+  const detail = {unknown:'',safety:' These suggestions weren’t suitable for this age.',quality:' These suggestions weren’t specific enough to be useful.',repetition:' These ideas were too similar to earlier suggestions; you can deliberately revisit a favorite.'}[reason];
+  return { schemaVersion: 2, outcome: 'limitation', limitation: limitationMessage + detail, toys, activities: [] };
 }
 export function validateAndFilterActivities(value: unknown, age: number): StructuredResult {
   const parsed = parseActivityResponse(value);
   const activities = deduplicateActivities(parsed.activities.filter(activity => isSuitableActivity(activity, age)));
-  if (!activities.length) return limitationResult(parsed.toys);
+  if (!activities.length) return limitationResult(parsed.toys, parsed.activities.length ? parsed.activities.every(a=>!assessActivitySafety(a,age).allowed) ? 'safety' : 'quality' : 'unknown');
   return { schemaVersion: 2, outcome: 'success', limitation: null, toys: parsed.toys, activities };
 }
 export function legacyResponse(result: StructuredResult): LegacyResult {

@@ -3,7 +3,7 @@ import { useAuthActions } from '@convex-dev/auth/react';
 import { useMutation } from 'convex/react';
 import { api } from '../convex/_generated/api';
 export type AccessScreen = 'tool' | 'signUp' | 'signIn' | 'payment';
-export function AccessPanel({ screen, onScreen, canClaimBonus }: { screen: Exclude<AccessScreen, 'tool'>; onScreen: (s: AccessScreen) => void; canClaimBonus: boolean }) {
+export function AccessPanel({ screen, onScreen, canClaimBonus, allowSignup = true, isolatedTesting = false }: { screen: Exclude<AccessScreen, 'tool'>; onScreen: (s: AccessScreen) => void; canClaimBonus: boolean; allowSignup?: boolean; isolatedTesting?: boolean }) {
   const { signIn } = useAuthActions(), claim = useMutation(api.access.claimBonus);
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [qrMissing, setQrMissing] = useState(false);
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -14,6 +14,8 @@ export function AccessPanel({ screen, onScreen, canClaimBonus }: { screen: Exclu
     finally { setBusy(false); }
   }
   async function freeTurn() { setBusy(true); setError(''); try { await claim({}); onScreen('tool'); } catch { setError('Your last free turn is already claimed, or the connection failed. Please try again.'); } finally { setBusy(false); } }
+  if(screen==='payment'&&isolatedTesting)return <section className="access-panel"><h1>Testing access is separate from payments</h1><p>Real payment collection is unavailable here. An invitation provides a limited testing allowance after the owner approves live AI. Existing paid records and entitlements are unchanged.</p><button onClick={()=>onScreen('tool')}>Back to my toys</button></section>;
+  if(screen==='signUp'&&!allowSignup)return <section className="access-panel"><h1>Keep your ideas here for now</h1><p>New testing accounts are paused until the personal-data retention and deletion policy is approved. Your current ideas stay in this tab.</p><button onClick={()=>onScreen('tool')}>Back to my toys</button><button onClick={()=>onScreen('signIn')}>Log in to an existing account</button></section>;
   return <section className="access-panel" aria-busy={busy}>
     {screen === 'payment' ? <><h1>A little more playtime</h1><p className="price">₹99 a month</p><p>Scan this UPI QR to pay. Add your signup email to the payment note so the owner can match your payment to your account.</p>
       {qrMissing ? <div className="qr-empty" role="status">The payment QR is not available yet. Please check back before paying.</div> : <img className="upi-qr" src="/payments/upi-qr.png" alt="Gummy Bear UPI payment QR code" onError={() => setQrMissing(true)}/>}

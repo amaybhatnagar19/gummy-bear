@@ -75,3 +75,19 @@ For each milestone: (1) inspect relevant code; (2) propose small file-level plan
 ## Execution update — V1 application work
 
 D1.2 is the approved visual baseline. The latest owner instruction authorizes incremental V1 implementation, preserving production billing/auth records and stopping for unresolved security/privacy decisions or production changes. See V1_IMPLEMENTATION_PROGRESS.md for actual progress and verification; earlier proposal/checklists above are historical planning, not proof of implementation. Phase 1 has been implemented locally with isolated browser mocks; durable family features and live-provider/auth configuration remain incomplete.
+
+## Current execution status — continuous V1 authorization
+
+The latest owner request supersedes the earlier routine per-task approval protocol: independent safe implementation proceeded continuously through quality, guest journey, activity experience, family storage, reminders, privacy controls and PWA work. No production deployment/configuration change or destructive identity migration was authorized or performed.
+
+The implementation now uses the verified separate testing project. Account-owned tables/functions and connected screens are implemented behind closed privacy/provider gates; status and actual proof are recorded in V1_IMPLEMENTATION_PROGRESS.md and V1_IMPLEMENTATION_REPORT.md. Do not treat the historical proposal or a completed screen as proof of live-provider readiness.
+
+Remaining dependency order:
+
+1. Owner approves real personal-data retention, deletion exceptions, provider disclosures and parental consent wording/version; complete that activation work without changing production.
+2. Owner approves hard AI budget/per-request ceiling and separate testing key; perform narrowly authorized real-provider evaluation, including image cost, 1,500-token quality, nonrepetition and safety examples. Existing monetary reservations must cover worst-case charges before claiming an invoice-level hard ceiling.
+3. Owner approves Google setup/email service; connect and verify Google, OTP delivery and opt-in reminder delivery in testing. Preserve password recovery and refuse email-only identity remapping.
+4. Verify actual phone installation/camera/accessibility, final visual signoff and testing data deletion lifecycle.
+5. Prepare an explicit production activation/rollback plan; obtain production and payment-presentation approvals before the existing Convex hosting deployment command is used.
+
+No routine phase approval is needed for the already authorized implementation, but these provider/privacy/production decisions remain genuine blockers. No unapproved live feature should be marked complete.

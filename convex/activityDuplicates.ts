@@ -17,12 +17,12 @@ function mechanics(text: string): string {
     for (const attribute of ['color', 'shape', 'size']) if (text.includes(attribute)) actions.push(`sort:${attribute}`);
   }
   if (/\b(?:copy|imitate|mirror|mimic)\b/.test(text) && /\b(?:move|movement|movements)\b/.test(text)) actions.push('mirror');
-  if (/\bstack\b/.test(text)) actions.push('stack');
+  if (/\bstack\b/.test(text) || (/\btower\b/.test(text) && /\b(?:build|make|place|top)\b/.test(text))) actions.push('stack');
   if (/\broll\b/.test(text)) actions.push('roll');
   if (/\b(?:story|adventure|journey)\b/.test(text) && /\b(?:tell|sentence|turns)\b/.test(text)) actions.push('story');
   return actions.sort().join('|');
 }
-function repeated(a: Activity, b: Activity): boolean {
+export function activitiesRepeat(a: Activity, b: Activity): boolean {
   const left = normalize(a), right = normalize(b);
   if (left === right) return true;
   const first = mechanics(left), second = mechanics(right);
@@ -36,6 +36,6 @@ function repeated(a: Activity, b: Activity): boolean {
 }
 export function deduplicateActivities(activities: Activity[]): Activity[] {
   const accepted: Activity[] = [];
-  for (const activity of activities) if (!accepted.some(previous => repeated(previous, activity))) accepted.push(activity);
+  for (const activity of activities) if (!accepted.some(previous => activitiesRepeat(previous, activity))) accepted.push(activity);
   return accepted;
 }

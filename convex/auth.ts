@@ -6,7 +6,7 @@ import { preserveIdentity } from './authIdentity';
 import { googleProvider } from './authProviders';
 import type { MutationCtx } from './_generated/server';
 import type { Id } from './_generated/dataModel';
-const isolated = process.env.CONVEX_URL === testingBoundary.convexUrl;
+const isolated = process.env.CONVEX_CLOUD_URL === testingBoundary.convexUrl;
 const googleEnabled = isolated && dataPolicyOpen() && process.env.V1_GOOGLE_AUTH_APPROVED === 'true' && Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET);
 export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
   callbacks: isolated ? { createOrUpdateUser: (ctx,args) => preserveIdentity(ctx as MutationCtx,{existingUserId:args.existingUserId as Id<'users'>|null,profile:args.profile}) } : undefined,

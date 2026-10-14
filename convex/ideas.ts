@@ -1,3 +1,4 @@
+import { testingBoundary } from '../shared/testingDeployment.js';
 import { action } from './_generated/server';
 import { internal } from './_generated/api';
 import { ConvexError, v } from 'convex/values';
@@ -8,6 +9,9 @@ export const discover = action({
   args: { image: v.string(), age: v.number(), visitorToken: v.optional(v.string()), responseVersion: v.optional(v.literal(2)) },
   returns: v.union(legacyResultValidator, structuredResultValidator),
   handler: async (ctx, { visitorToken, responseVersion, ...photo }): Promise<LegacyResult | StructuredResult> => {
+    // Preserve production's existing access contract; deny legacy entry in testing
+    // so it cannot evade the new invitation, concurrency and monetary gates.
+    if(process.env.CONVEX_CLOUD_URL===testingBoundary.convexUrl) throw new ConvexError('Use the current V1 testing flow. Legacy AI requests are disabled in this isolated deployment.');
     const reservation = await ctx.runMutation(internal.access.reserve, { visitorToken });
     let run: Id<'photoRuns'> | undefined;
     try {

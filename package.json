@@ -10,7 +10,8 @@
     "deploy": "npx @convex-dev/static-hosting deploy",
     "testing:verify": "node scripts/convex-testing.mjs verify",
     "testing:push": "node scripts/convex-testing.mjs push",
-    "build:testing": "tsc --noEmit && vite build --mode development --outDir dist-v1-testing"
+    "build:testing": "tsc --noEmit && vite build --mode development --outDir dist-v1-testing && node scripts/prepare-testing-build.mjs",
+    "preview:testing": "node scripts/serve-testing-build.mjs"
   },
   "keywords": [],
   "author": "",

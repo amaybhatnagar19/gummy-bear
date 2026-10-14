@@ -36,7 +36,7 @@ test('public page and existing app survive direct navigation, refresh and Back',
   await page.getByLabel('Choose one toy photo').setInputFiles({ name: 'synthetic-fixture.jpg', mimeType: 'image/jpeg', buffer: fixture });
   await expect(page.getByRole('img', { name: 'Your selected toy photo' })).toBeVisible();
 
-  await expect(page.getByRole('button', { name: 'Recognize toys', exact: true })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Recognize toys', exact: true })).toBeDisabled();
   await expect(page.getByLabel('Take one toy photo')).toHaveAttribute('capture', 'environment');
   await page.goto('/app/');
   await expect(page.getByRole('heading', { name: 'Let’s see those toys' })).toBeVisible();
@@ -92,8 +92,8 @@ test('synthetic signed-in sessions retain controls and payment paths without liv
   const paymentImage: string[] = [];
   page.on('request', r => { if (new URL(r.url()).pathname.startsWith('/payments/')) paymentImage.push(new URL(r.url()).pathname); });
   await page.getByRole('button', { name: 'Payment', exact: true }).click();
-  await expect(page.getByText('₹99 a month')).toBeVisible();
-  await expect.poll(() => paymentImage).toContain('/payments/upi-qr.png');
+  await expect(page.getByRole('heading',{name:'Testing access is separate from payments'})).toBeVisible();
+  expect(paymentImage).toEqual([]);
   await page.getByRole('button', { name: 'Back to my toys' }).click();
   await expect(page.getByRole('heading', { name: 'Let’s see those toys' })).toBeVisible();
   await page.getByRole('button', { name: 'Log out', exact: true }).click();

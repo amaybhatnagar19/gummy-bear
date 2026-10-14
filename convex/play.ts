@@ -2,7 +2,7 @@ import { internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { ConvexError, v } from "convex/values";
 import { cleanText } from '../shared/v1';
-import { deduplicateActivities } from './activityDuplicates';
+import { activitiesRepeat } from './activityDuplicates';
 import { photoPrompt } from "./rules";
 import { activityJsonSchema, type StructuredResult } from '../shared/activityContract';
 import { structuredResultValidator, validateAndFilterActivities, limitationResult, activityValidator } from './activityResponses';
@@ -15,7 +15,7 @@ export const generate = internalAction({
     if ((!image && !confirmedToys) || image.length > 350000 || (image && !/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(image))) throw new ConvexError('Choose one clear photo. It must be reduced before sending.');
     if (confirmedToys && (!confirmedToys.length || confirmedToys.length > 12 || new Set(confirmedToys).size !== confirmedToys.length)) throw new ConvexError('Confirm one to twelve toys.');
     confirmedToys?.forEach(name => cleanText(name));
-    if (previous.length > 300 || interests.length > 8) throw new ConvexError('Too much context. Choose fewer toys or interests.');
+    if (previous.length > 600 || interests.length > 8) throw new ConvexError('Too much context. Choose fewer toys or interests.');
     interests.forEach(name => cleanText(name,40));
     const key = process.env.OPENAI_API_KEY;
     if (!key) throw new ConvexError('Gummy Bear is not connected yet. The owner needs to set the OpenAI key in Convex.');
@@ -56,8 +56,9 @@ export const generate = internalAction({
       const result = validateAndFilterActivities(JSON.parse(raw), age);
       if (confirmedToys && result.activities.some(a => a.toyReferences.some(name => !confirmedToys.includes(name)))) throw new Error('Unconfirmed toy');
       if (confirmedToys) result.toys = confirmedToys;
-      result.activities = result.activities.filter(activity => deduplicateActivities([...previous, activity]).includes(activity));
-      return result.activities.length ? result : limitationResult(confirmedToys ?? result.toys);
+      if (!result.activities.length) return result;
+      result.activities = result.activities.filter(activity => !previous.some(old=>activitiesRepeat(old,activity)));
+      return result.activities.length ? result : limitationResult(confirmedToys ?? result.toys, 'repetition');
     }
     catch { throw new ConvexError('The answer was incomplete. Please try again with a clearer photo.'); }
   },

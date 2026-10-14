@@ -1,85 +1,50 @@
 # Gummy Bear V1 implementation progress
 
-This file reports implemented and tested behavior, not the completion of the full V1 product.
+14 October 2026. Current status: integrated isolated implementation, with important activation/release blockers. No production deployment, production data access, real personal-data collection or paid AI calls.
 
-## Checkpoints and environment
+## Checkpoints
 
-- [x] Read PRODUCT.md, AGENTS.md, IMPLEMENTATION_PLAN.md and AUDIT_REPORT.md; read the five requested design documents in GUMMY_BEAR_DESIGN_PACKAGE/.
-- [x] Verified D1.2 landing/logo and M1 structured safety validation are present.
-- [x] Baseline: 248 guarded Vitest tests, 3 Node tests and production build passed.
-- [x] Local checkpoint b44e0d7 preserves approved D1/M1 work. No push or deployment.
-- [x] Excluded .env files, historical browser artifacts, installed skills and the unused QR duplicate from the checkpoint.
-- [x] Local browser tests use https://d1-isolated.invalid, intercepted HTTP/WebSockets, and synthetic sessions. Vitest uses the existing outbound network guard and in-memory Convex.
-- [x] Owner selected the existing Convex team; separate `gummy-bear-v1-testing` project created and verified. See V1_ENVIRONMENT_SETUP.md.
-- [x] Separate project, scoped credentials, fresh auth keys and empty database verified. Original project/env preserved.
-- [x] No live AI enabled and no original-project data/configuration writes. Existing backend was installed only in the new testing project; no frontend deployed.
+- `d26e775`: previously verified separate testing environment.
+- `f3afcad`: reversible checkpoint before this execution; approved landing and M1 baseline preserved.
+- `cc8e2d5`: initial quality/recovery improvement.
+- `8bea78d`: initial connected journey and gated family features. Later hardening supersedes this checkpoint; do not activate its earlier gate implementation.
+- Final hardening/verification checkpoint follows this report update.
 
-## Phase checklist
+Pre-existing untracked `.agents/`, `.impeccable/review/`, `skills-lock.json` and `public/payments/upi-qr.png.jpg` were preserved and excluded from checkpoints.
 
-- [x] Phase 1: shared /app route architecture, signed-in Home/My Toys/Activities/Profile navigation, reusable states/buttons, URL navigation/Back/direct routes/refresh, focus handling, offline notice, and recoverable error boundary.
-- [x] Phase 1: working legacy photo/access/payment tool retained as a bridge; temporary photo/age/results stay mounted across internal app navigation. Refresh intentionally clears temporary work. Logout clears the tool's temporary state.
-- [x] Phase 1: family features are explicitly labeled not connected, rather than showing invented inventory/history.
-- [ ] Phase 2: separate recognition, correction, age and activity generation.
-- [ ] Phase 3: complete structured cards/details, save/intent/tried/feedback and alternatives.
-- [ ] Phase 4: Google/email OTP, secure guest linkage and legacy-account compatibility.
-- [ ] Phase 5: persistent child profiles and toy inventory.
-- [ ] Phase 6: persistent activity memory and personalization.
-- [ ] Phase 7: in-app/opt-in email Reuse Reminder.
-- [ ] Phase 8: approved retention/deletion controls and privacy policy.
-- [ ] Phase 9: installable PWA and final mobile/device verification.
+## Work checklist
 
-## Phase 1 implementation
+| Work | Code and deterministic verification | Remaining prerequisite |
+| --- | --- | --- |
+| D1.2 landing | Preserved; original landing sources/assets unchanged; browser regression checks | No new landing changes requested |
+| M1 Task 2B | Materials, filler, mirror/tower repetition, previous/history exclusion, reason-specific limitations, successful-result recovery | Curated live-provider quality/cost evaluation needs separate approval |
+| Phase 1 | Shared app shell, four destinations, URL/Back/direct navigation, focus, responsive shared design | Physical device/screen-reader checks |
+| Phase 2 | Photo → recognition → correction → explicit age → 1–3 ideas, separate server calls, guest first value, recovery | Privacy + paid-AI approval/key; currently deliberately paused |
+| Phase 3 | Full cards/details, saved/favorite/intended/tried/feedback, alternatives from stored/current ideas | Real saving remains disabled until privacy approval |
+| Phase 4 | Password preserved; secure guest claim; proved identities preserved; same-email collision refused; Google gated wiring | Google configuration/approval; OTP factory lacks approved delivery adapter/registration; no migration performed |
+| Phase 5 | Multiple children, optional DOB/age/interests, youngest-child context, single/shelf recognition, named inventory, duplicate confirmation, assignments/status/condition | Real personal-data activation and approved consent/retention wording |
+| Phase 6 | Persistent account-owned suggestions, 500-record testing history, 500 attempts, saved/favorites/feedback, history duplicate filtering and intentional revisits | Cloud persistence with real users not enabled; pagination beyond testing bounds deferred |
+| Phase 7 | Atomic frequency-controlled in-app reminder claims, manual rediscovery, dismissal, date rules, explicit-attempt suppression, donation safeguards | Email delivery/opt-in implementation blocked on provider and consent approval |
+| Phase 8 | Photo minimization/no photo storage, temporary clearing/deletion, family-data deletion, optional contact/future-consent fields, account isolation | Full privacy policy/parent consent version; full account/auth/financial deletion policy unresolved |
+| Phase 9 | Manifest/icons/install guidance, public-only offline shell, responsive/keyboard/motion checks | Actual iOS/Android installation, camera and assistive-technology signoff |
 
-The new development connection guard has a deterministic test rejecting unverified, missing and malformed URLs; the dummy URL is the sole local allowlisted backend until project ownership is confirmed.
+“Code verified” does not mean an approval gate has been opened or an external provider has been tested.
 
-New application module: src/features/app/Application.tsx, navigation.ts, components.tsx and app.css. src/main.tsx recognizes /app subroutes and still lazy-loads the untouched landing at /. LegacyApp exposes LegacyTool without changing its access or AI orchestration. One outer Convex/Auth provider supplies both tool and shell. No new backend function or schema is required by Phase 1.
+## Environment and proof
 
-Navigation intercepts only known app links; modified clicks and public links keep native browser behavior. Browser popstate restores the screen. Route headings receive focus. The existing tool remains mounted but hidden outside its route. New family screens describe their not-yet-available state; their buttons only lead to working existing flows.
+Separate project `gummy-bear-v1-testing`, development deployment `blissful-dotterel-906`. Guarded backend/schema pushes went only there; no frontend upload. Original `.env.local`, PRODUCT.md, lockfile, auth configuration, payment/access functions and hosting configuration checksums match their protected originals.
 
-At Phase 1, local development allowed only the dummy browser-test address. After the separately approved environment setup, it also allows the verified testing-project endpoint. The original environment was restored exactly following the CLI env-file issue; details are in V1_ENVIRONMENT_SETUP.md. Development refuses unverified connections and does not fall back to the original project.
+A testing-only public read exposed an incorrect server URL variable during verification. Corrected every backend gate to Convex’s built-in `CONVEX_CLOUD_URL`; added regressions proving the local alias cannot enable a server gate and real password signup logic cannot create records while privacy is closed. Retested and pushed only testing. Current remote feature gates verify isolated testing and keep personal data, live AI, Google, OTP and email reminders off.
 
-## Phase 1 verification commands and results (historical)
+Latest guarded suite: 325 Vitest tests across 20 files + 3 Node tests passed. Strict separate tests/config TypeScript check and local production/testing builds pass. Combined isolated browser run: 13 passed, including the compiled offline PWA and synthetic connected family forms/history/deletion. No historical live specs ran. Final verification details and any follow-up reruns are in V1_IMPLEMENTATION_REPORT.md.
 
-- npm test: 258 guarded Vitest tests across 10 files + 3 Node tests passed.
-- npm run build: TypeScript and Vite build passed; existing nonfatal Convex Auth use-client warning remains.
-- ./node_modules/.bin/tsc --ignoreConfig --noEmit --target ES2022 --module ESNext --moduleResolution Bundler --jsx react-jsx --strict --skipLibCheck --types node,vite/client vitest.config.ts tests/setup/no-network.ts tests/backend/*.test.ts tests/browser/*.ts playwright.config.ts: passed.
-- VITE_CONVEX_URL=https://d1-isolated.invalid ./node_modules/.bin/vite --host 127.0.0.1 --port 5175 --strictPort: local isolated UI test server.
-- GUMMY_TEST_URL=http://127.0.0.1:5175 ./node_modules/.bin/playwright test tests/browser/d1.spec.ts tests/browser/app-shell.spec.ts: 7 passed. Only these isolated specs ran; other browser specs were not executed.
-- Initial browser failures: hidden legacy heading received route focus; corrected selector. Guest keyboard test pressed Tab before lazy page mounted; corrected explicit visible-page wait. Final rerun passed all seven. Screenshot captures now wait for a visible heading and all four navigation links rather than capturing the lazy loading fallback.
-- Browser proof covers 320/390/768/1440 widths, nav targets at least 44px, active states, keyboard/skip link, direct routes/refresh/Back, photo and age preservation, offline copy, simulated sign-out and clearing of selected photos, existing access/payment UI, 200% app text reflow with navigation height reserved, and landing contrast/reduced motion. An isolated browser calculation also found no contrast failures in visible Home text.
-- Screenshots inspected: test-results/app-shell-signed-in-shell--73250-d-honest-feature-boundaries/home-390.png and home-1440.png. Synthetic account only; no family information shown.
+## Remaining owner decisions
 
-## Remaining prerequisites and decisions
+1. Approve retention/deletion and consent policy before any real signup, photo processing or family/contact saving. Proposed boundaries: no original-photo storage; guest draft expires after 24 hours; optional nickname/approximate age/interests; exact DOB/phone separately optional; family deletion preserves auth/payment/access records until their separate policy is approved. Provider retention must be disclosed accurately.
+2. Approve a hard live-AI budget and conservative per-request ceiling before adding a separate testing provider key. Ten generations plus ten recognition calls/day are ceilings, not promises of full usage when the total budget is exhausted.
+3. Approve Google testing configuration and an email-delivery service for OTP/reminders. No email-based identity merging or irreversible account migration.
+4. Approve final privacy copy, device/accessibility verification and a production-specific release plan. Current gates intentionally support testing only; this is not a production-ready configuration.
 
-The full V1 is not complete. Resolve project isolation and privacy/auth prerequisites before connecting durable family features:
+See V1_IMPLEMENTATION_REPORT.md for completion matrix, risks, exact files, cost assumptions and rollback/deployment prerequisites.
 
-1. Resolved: the separately approved project, deployment and credentials are now verified; see V1_ENVIRONMENT_SETUP.md. No further feature work began after that setup.
-2. Approve retention/deletion boundaries before introducing durable child or guest content. Proposed minimum: no original photo retention; optional child nickname + approximate age + interests; exact DOB optional only if specifically approved; guest progress held in this tab until authenticated linking is secure. Separate family-data deletion from preserved financial/auth/access records. Do not claim full account deletion while retaining those records.
-3. Approve email-delivery service/configuration for email OTP and opt-in reminders. The repository currently has only password auth; no email-delivery provider or Google credentials have been verified. Preserve Password, prohibit email-only account merging, and require explicit proof of both identities before any future linkage.
-4. Hard monetary live-AI ceiling remains unapproved. Maintain 10 invited testers / 14 days / proposed 10 generations per tester/day / one concurrent request, with the existing global quota. No live provider requests until separately approved; recognition adds a provider call and must be included in spending/admission design.
-
-## Rollback
-
-The initial baseline is b44e0d7. Subsequent Phase 1 changes are separately reviewable. Revert the Phase 1 commit, not a hard reset, to restore prior /app entry without discarding unrelated work. No remote rollback is needed because no functions, schemas or resources were pushed.
-
-Strict test TypeScript check caught a Node-versus-Element type mismatch in the temporary zoom-style cleanup; changed to parentNode.removeChild and reran the strict check successfully.
-
-## Environment setup completion
-
-The owner approved creating the separate testing project under the existing team. Local development is now allowlisted to that verified deployment, and guarded testing push commands use a private workspace and a deployment-scoped credential. Environment verification: 272 Vitest + 3 Node + 9 isolated browser checks passed; builds/typechecks passed. All new cloud tables are empty. No further feature implementation proceeded; phases 2–9 remain pending explicit continuation. Full details and the corrected CLI env-file issue are recorded in V1_ENVIRONMENT_SETUP.md.
-
-## Continuous V1 execution — quality checkpoint
-
-14 October 2026: verified the isolated project again; baseline 272 guarded tests + 3 Node tests/build passed. Checkpoint f3afcad. Added five quality regressions (one reproduced verbose filler before fix), filtered verbose filler, preserved legacy successful results during retries, and removed provider error-message logging. 277 guarded + 3 Node tests/build passed. Durable real personal-data collection, email providers and paid AI remain closed pending their explicit approval; independent implementation continues.
-
-## Integrated V1 implementation checkpoint
-
-- Implemented separate recognition/correction/age/ideas routes; corrected names are actual provider inputs, with server-side reference enforcement. Full cards and detail views, alternatives, recoverable failures and temporary deep-link recovery are connected.
-- Added account-owned child, toy, activity, attempt, preference, guest-link and testing-admission tables/functions. Real personal-data writes default closed; synthetic tests exercise persistence, family authorization, deletion and guest linking. This is not approval to collect real family information.
-- Saved, favorite, intended and parent-reported tried/feedback are independent. History rejects cosmetic repeats; group safety uses the youngest selected child. Toys have explicit status, condition, assignments, outgrown and acquisition date separate from upload.
-- Manual/in-app rediscovery honors acquisition age, suppression and opt-out. Unsafe/damaged donation advice is blocked. Email delivery remains blocked, not represented as working.
-- Google is wired behind isolated deployment + privacy + explicit provider approval/configuration gates; no keys installed. Email OTP provider factory is deterministic-testable but has no approved delivery adapter and is not registered. Legacy password remains; proved provider IDs are preserved and same-email collisions are refused in testing.
-- 300 guarded tests + 3 Node tests and production build pass at this checkpoint. New guest browser journey (2 tests) and restored shell checks (3 tests) passed. Existing safe landing checks passed; full combined rerun follows.
-- No real accounts, family data, paid AI or production resources accessed. Only guarded function/schema pushes to the verified testing deployment.
-
-Verified 11 combined isolated browser tests; 306 guarded backend/unit tests + 3 Node tests passed before the final invited-guest regression additions. Fixed month-end two-month cutoff, phone removal, cross-family toy/activity/reminder operations, explicit duplicate toy confirmation, and suppression based only on linked parent-reported attempts. Guest cleanup is scheduled hourly in testing. Added anonymous invitation capabilities so first value does not require account creation; existing trial/refund behavior remains enforced. Signed-in testers still require existing access under the unchanged billing contract; any temporary grant beyond it needs a verified access-policy decision before enabling live AI.
+Signed-in generation now commits suggestions on the server before responding, with matching activity IDs. Regression verifies later duplicate rejection without browser memory. Invited accounts cannot multiply quotas using multiple guest codes. Client processing stays disabled while privacy/budget readiness is false; no photos are sent by the UI in that state.

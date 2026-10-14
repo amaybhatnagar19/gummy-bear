@@ -1,0 +1,3 @@
+import {expect,test}from'vitest';import{errorMessage}from'../../src/features/app/usePlayFlow';import{ConvexError}from'convex/values';
+test('unclassified client errors do not expose request tags or server payloads',()=>{expect(errorMessage(new Error('[CONVEX A(v1Ideas:generate)] synthetic private payload Called by client'))).toBe('We couldn’t complete this request. Check your connection and try again.');});
+test('known photo preparation errors and controlled server limitations stay actionable',()=>{expect(errorMessage(new Error('This photo is too large. Choose one under 25 MB.'))).toContain('25 MB');expect(errorMessage(new ConvexError('You’ve reached today’s testing allowance.'))).toContain('allowance');});

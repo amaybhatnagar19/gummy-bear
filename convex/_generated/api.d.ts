@@ -18,6 +18,7 @@ import type * as analyticsRules from "../analyticsRules.js";
 import type * as auth from "../auth.js";
 import type * as authIdentity from "../authIdentity.js";
 import type * as authProviders from "../authProviders.js";
+import type * as crons from "../crons.js";
 import type * as family from "../family.js";
 import type * as guest from "../guest.js";
 import type * as http from "../http.js";
@@ -49,6 +50,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   authIdentity: typeof authIdentity;
   authProviders: typeof authProviders;
+  crons: typeof crons;
   family: typeof family;
   guest: typeof guest;
   http: typeof http;

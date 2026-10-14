@@ -1,2 +1,15 @@
-import { useQuery } from 'convex/react';import { useAuthActions } from '@convex-dev/auth/react';import { api } from '../../../convex/_generated/api';import { AppButton,Notice } from './components';import { useState } from 'react';
-export function AuthChoices(){const options=useQuery(api.v1Capabilities.status,{}),{signIn}=useAuthActions(),[error,setError]=useState('');return <section className="ga-card"><h2>Choose how to sign in</h2><AppButton disabled={!options?.google} onClick={()=>void signIn('google',{redirectTo:'/app/home'}).catch(()=>setError('Google sign-in couldn’t open. Your current ideas are still here.'))}>Continue with Google</AppButton>{!options?.google&&<p>Google sign-in is awaiting provider configuration and privacy approval.</p>}<p>Email-code sign-in is awaiting an approved email-delivery service. Existing password sign-in remains available below.</p>{error&&<Notice title="Let’s try that again" error>{error}</Notice>}</section>;}
+import { useQuery } from 'convex/react';
+import { useAuthActions } from '@convex-dev/auth/react';
+import { api } from '../../../convex/_generated/api';
+import { AppButton, Notice } from './components';
+import { useState } from 'react';
+export function AuthChoices() {
+  const options = useQuery(api.v1Capabilities.status, {}),
+    {
+      signIn
+    } = useAuthActions(),
+    [error, setError] = useState('');
+  return <section className="ga-card"><h2>Choose how to sign in</h2><AppButton disabled={!options?.google} onClick={() => void signIn('google', {
+      redirectTo: '/app/home'
+    }).catch(() => setError('Google sign-in couldn’t open. Your current ideas are still here.'))}>Continue with Google</AppButton>{!options?.google && <p>Google sign-in is awaiting provider configuration and privacy approval.</p>}<p>Email-code sign-in is awaiting an approved email-delivery service. Existing password sign-in remains available below.</p>{error && <Notice title="Let’s try that again" error>{error}</Notice>}</section>;
+}

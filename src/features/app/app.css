@@ -63,3 +63,7 @@ body:has(.ga-app) { margin: 0; background: var(--gb-bg); }
 .ga-app summary { cursor:pointer; padding:12px 0; min-height:44px; }
 .ga-app .ga-content > a { margin-right:16px; }
 .ga-app button { overflow-wrap:anywhere; }
+
+.ga-app fieldset .ga-button { margin:4px 8px 4px 0; }
+
+.ga-app :is(h1,h2,h3,p,li,legend) { overflow-wrap:anywhere; }
