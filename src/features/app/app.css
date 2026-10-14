@@ -67,3 +67,8 @@ body:has(.ga-app) { margin: 0; background: var(--gb-bg); }
 .ga-app fieldset .ga-button { margin:4px 8px 4px 0; }
 
 .ga-app :is(h1,h2,h3,p,li,legend) { overflow-wrap:anywhere; }
+
+/* Keep the paused-release recovery links comfortable to tap. */
+.ga-release-links { display:flex; flex-wrap:wrap; gap:12px; }
+.ga-release-links a { display:inline-flex; align-items:center; min-height:44px; padding:8px 0; }
+.ga-brand { min-height:44px; }

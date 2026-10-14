@@ -83,3 +83,10 @@ Verification: 364 guarded Vitest tests plus 3 Node tests, strict TypeScript and 
 ## Approved toy-only evaluation separation — 14 October 2026
 
 Implemented a separate internal, testing-only synthetic evaluation policy; preserved all real-parent gates. Prepared 24 licensed reduced photographs with attribution, privacy checks, SHA-256 allowlisting and metadata tests. Installed disabled functions only into the verified testing deployment; public HTTP access rejected. Verification: 373 guarded Vitest tests +3 Node tests, TypeScript/builds and 15 isolated browser checks passed. Provider key/cap and full request costs still missing: no live requests, $0 spent, $10 remaining. See [SYNTHETIC_AI_EVALUATION_REPORT.md](SYNTHETIC_AI_EVALUATION_REPORT.md).
+
+
+## Production release preparation — 14 October 2026
+
+Read-only control-plane verification identifies the actual existing production as `sensible-avocet-370` in `build-sprint-app`; `intent-poodle-393` is its development deployment, and `blissful-dotterel-906` remains isolated testing. Local candidate adds closed production AI/signup/family gates, preserves existing password login and ₹99/month infrastructure, and guards deployment by verified target, exact approved commit and clean source. No production configuration/data writes or deployment occurred.
+
+Verification: 384 guarded Vitest tests +3 Node tests; strict TypeScript; production/testing builds; 18 network-isolated browser checks plus final 2-check artifact/screenshots recheck passed. Actual production's 14 schema definitions are unchanged; 11 existing V1 additive tables remain pending production installation. Full identity deletion/policy activation and full functional V1 remain blocked. See [PRODUCTION_READINESS_REPORT.md](PRODUCTION_READINESS_REPORT.md) for the paused-release activation matrix, limits and approval/rollback instructions.

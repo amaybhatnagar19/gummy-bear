@@ -1,3 +1,4 @@
+import { requireGenerationRelease } from './releasePolicy';
 import { testingBoundary } from '../shared/testingDeployment.js';
 import { action } from './_generated/server';
 import { internal } from './_generated/api';
@@ -12,6 +13,7 @@ export const discover = action({
     // Preserve production's existing access contract; deny legacy entry in testing
     // so it cannot evade the new invitation, concurrency and monetary gates.
     if(process.env.CONVEX_CLOUD_URL===testingBoundary.convexUrl) throw new ConvexError('Use the current V1 testing flow. Legacy AI requests are disabled in this isolated deployment.');
+    requireGenerationRelease();
     const reservation = await ctx.runMutation(internal.access.reserve, { visitorToken });
     let run: Id<'photoRuns'> | undefined;
     try {

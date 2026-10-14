@@ -1,0 +1,22 @@
+import {test,expect} from '@playwright/test';
+import {productionTarget} from '../../shared/productionTarget.js';
+import {isolate} from './isolatedBackend';
+test.use({serviceWorkers:'block'});
+test('closed release hides photo/signup/family flows but retains existing password sign-in and navigation',async({page})=>{
+ const calls=await isolate(page,'guest',false,undefined,false,true);
+ for(const route of ['/app','/app/recognize','/app/age','/app/ideas','/app/toys','/app/activities','/app/profile']){await page.goto(route);await expect(page.getByText('You don’t need to upload a photo or enter child details.')).toBeVisible();await expect(page.locator('input[type=file]')).toHaveCount(0);await expect(page.locator('input[type=password]')).toHaveCount(0);await expect(page.getByRole('button',{name:'Recognize toys'})).toHaveCount(0);}
+ await page.goto('/app/sign-up');await expect(page.getByRole('heading',{name:'New accounts are paused'})).toBeVisible();await expect(page.locator('form')).toHaveCount(0);
+ await page.getByRole('button',{name:'Log in to an existing account'}).click();await expect(page.getByLabel('Email',{exact:true})).toBeVisible();await expect(page.getByLabel('Password',{exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'Create an account'})).toHaveCount(0);await expect(page.getByRole('button',{name:'Continue with Google'})).toHaveCount(0);
+ await page.goBack();await expect(page.getByRole('heading',{name:'New accounts are paused'})).toBeVisible();expect(calls).toEqual([]);
+});
+test('closed signed-in release preserves recorded paid access with responsive keyboard navigation',async({page},info)=>{
+ await isolate(page,'paid',false,undefined,false,true);await page.emulateMedia({reducedMotion:'reduce'});
+ for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:900});await page.goto('/app/profile');await expect(page.getByText(/Paid access is recorded/)).toBeVisible();await expect(page.getByRole('navigation',{name:'Parent navigation'})).toBeVisible();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
+ await page.setViewportSize({width:390,height:844});await page.goto('/app/profile');await expect(page.getByText(/Paid access is recorded/)).toBeVisible();await page.keyboard.press('Tab');await expect(page.getByRole('link',{name:'Skip to app content'})).toBeFocused();await page.keyboard.press('Enter');await expect(page.locator('#app-content')).toBeFocused();await page.getByRole('link',{name:'My Toys',exact:true}).click();await expect(page.getByRole('heading',{name:'My Toys'})).toBeFocused();await expect(page.getByRole('button',{name:'Log out'})).toBeVisible();await expect(page.getByRole('button',{name:'Add child'})).toHaveCount(0);for(const link of await page.locator('.ga-release-links a,.ga-brand,.ga-nav a').all())expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44);await page.screenshot({path:info.outputPath('release-mobile.png'),fullPage:true});await page.setViewportSize({width:1440,height:1000});await page.screenshot({path:info.outputPath('release-desktop.png'),fullPage:true});
+});
+
+const preview=process.env.GUMMY_PRODUCTION_PREVIEW_URL;
+if(preview&&!['localhost','127.0.0.1'].includes(new URL(preview).hostname))throw new Error('Production candidate browser checks must be localhost with mocked backend traffic.');
+test('compiled production candidate uses the verified production URL with only intercepted synthetic requests',async({page})=>{
+ test.skip(!preview,'Requires the local candidate preview; never use the live production site.');const external:string[]=[];page.on('request',r=>{const host=new URL(r.url()).hostname;if(!['localhost','127.0.0.1'].includes(host))external.push(host);});await isolate(page,'paid',false,undefined,false,true,true);await page.goto(preview!+'/app/profile');await expect(page.getByText(/Paid access is recorded/)).toBeVisible();await expect(page.locator('input[type=file]')).toHaveCount(0);await expect(page.getByRole('navigation',{name:'Parent navigation'})).toBeVisible();await page.getByRole('link',{name:'Home',exact:true}).click();await expect(page.getByRole('heading',{name:'Home',exact:true})).toBeFocused();await page.reload();await expect(page.getByRole('heading',{name:'Home',exact:true})).toBeVisible();expect(external.every(host=>host===new URL(productionTarget.cloudUrl).hostname)).toBe(true);
+});

@@ -1,3 +1,6 @@
+import { testingBoundary } from '../../../shared/testingDeployment.js';
+import { closedProductionFeatures } from '../../../shared/releaseFeatures';
+import { ReleaseUnavailable } from './ReleaseUnavailable';
 import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent } from 'react';
 import { ConvexReactClient, useConvexAuth, useQuery, useMutation } from 'convex/react';
 import { ConvexAuthProvider, useAuthActions } from '@convex-dev/auth/react';
@@ -31,12 +34,16 @@ function AppShell() {
   const wasAuthenticated = useRef(false);
   const [sessionEpoch, setSessionEpoch] = useState(0);
   const [selected, setSelected] = useState<Id<'children'>[]>([]);
-  const capabilities=useQuery(api.v1Capabilities.status,{});
-  const state = useQuery(api.family.state, isAuthenticated ? {} : 'skip') as FamilyState | undefined;
+  const testingClient=[testingBoundary.convexUrl,'https://d1-isolated.invalid'].includes(import.meta.env.VITE_CONVEX_URL);
+  const serverCapabilities=useQuery(api.v1Capabilities.status,testingClient?{}:'skip');
+  const capabilities=testingClient?serverCapabilities:closedProductionFeatures;
+  const restrictedRelease=!testingClient||capabilities?.isolatedTesting===false;
+  const familyQueriesEnabled=testingClient&&capabilities?.isolatedTesting===true;
+  const state = useQuery(api.family.state, isAuthenticated&&familyQueriesEnabled ? {} : 'skip') as FamilyState | undefined;
   const claimReminders=useMutation(api.family.claimReminders);
   const [shownReminders,setShownReminders]=useState<any[]>([]);
   const remindersFetched=useRef(false);
-  const reminders = useQuery(api.family.reminders, isAuthenticated ? {manual:route==='rediscover'} : 'skip') ?? [];
+  const reminders = useQuery(api.family.reminders, isAuthenticated&&familyQueriesEnabled ? {manual:route==='rediscover'} : 'skip') ?? [];
   const page = useRef<HTMLDivElement>(null);
   const navigation = useRef<HTMLElement>(null);
   function go(href: string) {
@@ -76,7 +83,7 @@ function AppShell() {
       if (heading) { heading.tabIndex = -1; heading.focus(); }
       scrollTo({ top: 0, behavior: 'instant' });
     }
-    pendingFocus.current=moving&&['home','toys','activities','profile','rediscover'].includes(route)&&(isLoading||(isAuthenticated&&!state));
+    pendingFocus.current=moving&&['home','toys','activities','profile','rediscover'].includes(route)&&(isLoading||(isAuthenticated&&!restrictedRelease&&!state));
     previousRoute.current = path;
   }, [route,path,isLoading,isAuthenticated,state]);
   useEffect(() => {
@@ -105,14 +112,14 @@ function AppShell() {
   }
   return <div className={`ga-app${isAuthenticated ? ' ga-has-nav' : ''}`} onClick={follow} ref={page}>
     <a className="ga-skip" href={route === 'start' ? '#photo-title' : '#app-content'}>Skip to app content</a>
-    {!online && <Notice title="You’re offline">You’ll need a connection to find new ideas or save changes. Keep your current page open.</Notice>}
+    {!online && <Notice title="You’re offline">{restrictedRelease?'You can read cached app pages. New AI ideas and family features remain paused.':'You’ll need a connection to find new ideas or save changes. Keep your current page open.'}</Notice>}
     {accountError && <Notice title="Let’s try that again" error>{accountError}</Notice>}
     {<header className="ga-header"><a className="ga-brand" href="/" aria-label="Gummy Bear"><img src="/brand/gummy-bear-mark.svg" width="32" height="32" alt=""/>Gummy Bear</a>{isAuthenticated ? <div className="ga-actions">{access?.state!=='paid'&&<AppButton secondary onClick={()=>go('/app/payment')}>Payment</AppButton>}<AppButton secondary busy={signingOut} onClick={logout}>Log out</AppButton></div> : <AppButton secondary onClick={()=>go('/app/sign-in')}>Log in</AppButton>}</header>}
     {!['start','recognize','age','ideas','idea'].includes(route)&&flow.error&&<Notice title="We couldn’t link your ideas yet" error>{flow.error}</Notice>}
     {!['start','recognize','age','ideas','idea'].includes(route)&&flow.notice&&<Notice title="A little update">{flow.notice}</Notice>}
     <main id="app-content" className="ga-content" tabIndex={-1}>
-      {screen ? <>{screen!=='payment'&&<AuthChoices/>}<AccessPanel screen={screen} onScreen={accessRoute} canClaimBonus={access?.canClaimBonus ?? false} allowSignup={capabilities?.personalData??false} isolatedTesting={capabilities?.isolatedTesting??true}/></> : ['start','recognize','age','ideas'].includes(route) ? <PlayJourney flow={flow} step={route} go={go} signed={isAuthenticated} policyOpen={isAuthenticated?(state?.policyOpen??false):(capabilities?.personalData??false)} liveAIReady={capabilities?.liveAIReady} children={selected} entries={state?.activities}/> : route==='idea' ? flow.activities[Number(path.split('/').pop())] ? <><h1>{flow.activities[Number(path.split('/').pop())].title}</h1><ActivityCard activity={flow.activities[Number(path.split('/').pop())]} id={flow.ids[Number(path.split('/').pop())]} age={flow.resultAge} saved={state?.activities.find(e=>e._id===flow.ids[Number(path.split('/').pop())])?.saved} favorite={state?.activities.find(e=>e._id===flow.ids[Number(path.split('/').pop())])?.favorite} intended={state?.activities.find(e=>e._id===flow.ids[Number(path.split('/').pop())])?.intended} tried={!!state?.activities.find(e=>e._id===flow.ids[Number(path.split('/').pop())])?.triedAt} rating={state?.activities.find(e=>e._id===flow.ids[Number(path.split('/').pop())])?.feedback} detail onNotice={flow.setNotice}/>{flow.notice&&<Notice title="A little update">{flow.notice}</Notice>}<a href="/app/ideas">Back to ideas</a></> : <><h1>This temporary idea isn’t here</h1><a href="/app">Find a new play idea</a></> : route === 'missing' ? <><h1>Let’s get you back to your toys</h1><p>This app page isn’t available.</p><a className="ga-link-button" href="/app">Find a play idea</a></> : isLoading ? <><h1>Opening your account</h1><Notice title="Please wait">Checking your session.</Notice></> : !isAuthenticated ? <><h1>{destinations.find(d => appRoute(d.path) === route)?.label??'Rediscover toys'}</h1><EmptyState title="Keep your ideas for next time" action={<a className="ga-link-button" href="/app/sign-in">Log in</a>}>You can try a play idea before creating an account.</EmptyState><a href="/app">Continue with a toy photo</a></> : !state ? <><h1>Opening your family space</h1><Notice title="Please wait">Loading your toys and ideas.</Notice></> : <FamilyScreens key={state.ownerId??'family'} state={state} route={route} path={path} flow={flow} go={go} selected={selected} setSelected={setSelected} reminders={route==='home'?shownReminders:reminders}/>}
-    <InstallGuide/>
+      {screen ? <>{screen!=='payment'&&!restrictedRelease&&<AuthChoices/>}{restrictedRelease&&<Notice title="New play ideas are paused">{screen==='payment'?'New AI play ideas are paused. A payment won’t enable them while they’re paused. Existing payment records and access dates are unchanged.':'Existing email and password sign-in remains available. Google and email-code sign-in aren’t available in this release.'}</Notice>}<AccessPanel screen={screen} onScreen={accessRoute} canClaimBonus={access?.canClaimBonus ?? false} allowSignup={capabilities?.personalData??false} isolatedTesting={capabilities?.isolatedTesting??true}/></> : restrictedRelease ? <ReleaseUnavailable route={route} signed={isAuthenticated} access={access}/> : ['start','recognize','age','ideas'].includes(route) ? <PlayJourney flow={flow} step={route} go={go} signed={isAuthenticated} policyOpen={isAuthenticated?(state?.policyOpen??false):(capabilities?.personalData??false)} liveAIReady={capabilities?.liveAIReady} children={selected} entries={state?.activities}/> : route==='idea' ? flow.activities[Number(path.split('/').pop())] ? <><h1>{flow.activities[Number(path.split('/').pop())].title}</h1><ActivityCard activity={flow.activities[Number(path.split('/').pop())]} id={flow.ids[Number(path.split('/').pop())]} age={flow.resultAge} saved={state?.activities.find(e=>e._id===flow.ids[Number(path.split('/').pop())])?.saved} favorite={state?.activities.find(e=>e._id===flow.ids[Number(path.split('/').pop())])?.favorite} intended={state?.activities.find(e=>e._id===flow.ids[Number(path.split('/').pop())])?.intended} tried={!!state?.activities.find(e=>e._id===flow.ids[Number(path.split('/').pop())])?.triedAt} rating={state?.activities.find(e=>e._id===flow.ids[Number(path.split('/').pop())])?.feedback} detail onNotice={flow.setNotice}/>{flow.notice&&<Notice title="A little update">{flow.notice}</Notice>}<a href="/app/ideas">Back to ideas</a></> : <><h1>This temporary idea isn’t here</h1><a href="/app">Find a new play idea</a></> : route === 'missing' ? <><h1>Let’s get you back to your toys</h1><p>This app page isn’t available.</p><a className="ga-link-button" href="/app">Find a play idea</a></> : isLoading ? <><h1>Opening your account</h1><Notice title="Please wait">Checking your session.</Notice></> : !isAuthenticated ? <><h1>{destinations.find(d => appRoute(d.path) === route)?.label??'Rediscover toys'}</h1><EmptyState title="Keep your ideas for next time" action={<a className="ga-link-button" href="/app/sign-in">Log in</a>}>You can try a play idea before creating an account.</EmptyState><a href="/app">Continue with a toy photo</a></> : !state ? <><h1>Opening your family space</h1><Notice title="Please wait">Loading your toys and ideas.</Notice></> : <FamilyScreens key={state.ownerId??'family'} state={state} route={route} path={path} flow={flow} go={go} selected={selected} setSelected={setSelected} reminders={route==='home'?shownReminders:reminders}/>}
+    <InstallGuide featuresPaused={restrictedRelease}/>
     </main>
     {isAuthenticated && <nav ref={navigation} className="ga-nav" aria-label="Parent navigation">{destinations.map(d => <a key={d.path} href={d.path} aria-current={appRoute(d.path) === route ? 'page' : undefined}>{d.label}</a>)}</nav>}
   </div>;

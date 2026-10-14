@@ -12,3 +12,6 @@ dist-v1-testing/
 
 # Private operator invitation/review state; never photos or API keys here.
 .ai-evaluation/
+
+# Private release rollback artifacts; never account/database exports.
+.release-backups/

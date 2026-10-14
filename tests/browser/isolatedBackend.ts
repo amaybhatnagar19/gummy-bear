@@ -1,3 +1,4 @@
+import { productionTarget } from '../../shared/productionTarget.js';
 import type { Page } from '@playwright/test';
 import { testingBoundary } from '../../shared/testingDeployment.js';
 
@@ -7,7 +8,9 @@ export const testingStorageNamespace = testingBackendURL.replace(/[^a-zA-Z0-9]/g
 const expectedHost = new URL(testingBackendURL).hostname;
 
 // Synthetic protocol replies only. This helper never connects to a remote server.
-export async function isolate(page: Page, account: 'guest' | 'paid' | 'payment' = 'guest', flow = false, family?: {policyOpen:boolean;children:any[];toys:any[];activities:any[];preferences:any;attempts?:any[]}, failDeletionOnce = false) {
+export async function isolate(page: Page, account: 'guest' | 'paid' | 'payment' = 'guest', flow = false, family?: {policyOpen:boolean;children:any[];toys:any[];activities:any[];preferences:any;attempts?:any[]}, failDeletionOnce = false, closedRelease = false, productionBuild = false) {
+  const expectedHost=new URL(productionBuild?productionTarget.cloudUrl:testingBackendURL).hostname;
+  const testingStorageNamespace=(productionBuild?productionTarget.cloudUrl:testingBackendURL).replace(/[^a-zA-Z0-9]/g,'');
   const calls: string[] = [];
   const privacy:any={version:'v1-privacy-2026-10-14',isolatedTesting:true,collectionEnabled:family?.policyOpen??false,acknowledged:!!family,consents:[],accountDeletion:null,familyDeletion:null};
   const token = `${Buffer.from('{"alg":"RS256"}').toString('base64url')}.${Buffer.from(JSON.stringify({ sub: 'synthetic-d1-session', iat: Math.floor(Date.now() / 1000), exp: Math.floor(Date.now() / 1000) + 86400 })).toString('base64url')}.synthetic`;
@@ -57,7 +60,8 @@ export async function isolate(page: Page, account: 'guest' | 'paid' | 'payment' 
       if (message.type === 'ModifyQuerySet') {
         transition({ querySet: message.newVersion }, message.modifications.map((mod: { type: string; queryId: number; udfPath?: string }) => {
           if (mod.type === 'Remove') return { type: 'QueryRemoved', queryId: mod.queryId };
-          if (mod.udfPath === 'v1Capabilities:status') return {type:'QueryUpdated',queryId:mod.queryId,value:{isolatedTesting:true,personalData:family?.policyOpen??false,liveAIReady:flow,google:false,emailOtp:false,emailReminders:false},logLines:[],journal:null};
+          if (mod.udfPath === 'v1Capabilities:status') return {type:'QueryUpdated',queryId:mod.queryId,value:{isolatedTesting:!closedRelease,personalData:family?.policyOpen??false,liveAIReady:flow,google:false,emailOtp:false,emailReminders:false},logLines:[],journal:null};
+          if(closedRelease&&/^(family|privacy):/.test(mod.udfPath??''))throw new Error('Closed release attempted an unfinished family/privacy query.');
           if (mod.udfPath === 'privacy:status') {privacyQueries.add(mod.queryId);return {type:'QueryUpdated',queryId:mod.queryId,value:privacy,logLines:[],journal:null};}
           if (mod.udfPath === 'family:state') { familyQueries.add(mod.queryId);return {type:'QueryUpdated',queryId:mod.queryId,value:family??{policyOpen:false,children:[],toys:[],activities:[],preferences:null},logLines:[],journal:null}; }
           if (mod.udfPath === 'family:reminders') return {type:'QueryUpdated',queryId:mod.queryId,value:[],logLines:[],journal:null};

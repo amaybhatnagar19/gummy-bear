@@ -1,3 +1,4 @@
+import { requireGenerationRelease } from './releasePolicy';
 import { internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { ConvexError, v } from "convex/values";
@@ -11,6 +12,7 @@ export const generate = internalAction({
   args: { image: v.string(), age: v.number(), confirmedToys: v.optional(v.array(v.string())), previous: v.optional(v.array(activityValidator)), interests: v.optional(v.array(v.string())) },
   returns: structuredResultValidator,
   handler: async (ctx, { image, age, confirmedToys, previous = [], interests = [] }): Promise<StructuredResult> => {
+    requireGenerationRelease();
     if (!Number.isInteger(age) || age < 2 || age > 8) throw new ConvexError('Choose an age between 2 and 8.');
     if ((!image && !confirmedToys) || image.length > 350000 || (image && !/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(image))) throw new ConvexError('Choose one clear photo. It must be reduced before sending.');
     if (confirmedToys && (!confirmedToys.length || confirmedToys.length > 12 || new Set(confirmedToys).size !== confirmedToys.length)) throw new ConvexError('Confirm one to twelve toys.');

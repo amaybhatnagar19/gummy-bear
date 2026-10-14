@@ -1,4 +1,5 @@
 import { defineConfig, loadEnv } from 'vite';
+import { validateProductionBuild } from './scripts/production-preflight.mjs';
 import { readTestingEnvironment } from './scripts/testing-environment.mjs';
 import { testingBoundary } from './shared/testingDeployment.js';
 export default defineConfig(({ mode }) => {
@@ -7,7 +8,8 @@ export default defineConfig(({ mode }) => {
   const env = development ? readTestingEnvironment() : loadEnv(mode, process.cwd(), '');
   const requested = process.env.VITE_CONVEX_URL;
   if (development && requested && ![testingBoundary.convexUrl, 'https://d1-isolated.invalid'].includes(requested)) throw new Error('Local development refuses an unverified backend URL.');
-  const url = development ? requested || testingBoundary.convexUrl : process.env.VITE_CONVEX_URL || env.VITE_CONVEX_URL || env.CONVEX_URL;
+  const production=development?null:validateProductionBuild(env);
+  const url = development ? requested || testingBoundary.convexUrl : production!.cloudUrl;
   return {
     envDir: development ? false : undefined,
     define: { 'import.meta.env.VITE_CONVEX_URL': JSON.stringify(url) },

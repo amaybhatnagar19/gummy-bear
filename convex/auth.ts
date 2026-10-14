@@ -1,3 +1,4 @@
+import { requireSignupRelease } from './releasePolicy';
 import { convexAuth } from "@convex-dev/auth/server";
 import { Password } from "@convex-dev/auth/providers/Password";
 import { testingBoundary } from '../shared/testingDeployment.js';
@@ -11,6 +12,7 @@ const googleEnabled = isolated && dataPolicyOpen() && process.env.V1_GOOGLE_AUTH
 export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
   callbacks: isolated ? { createOrUpdateUser: (ctx,args) => preserveIdentity(ctx as MutationCtx,{existingUserId:args.existingUserId as Id<'users'>|null,profile:args.profile}) } : undefined,
   providers: [...(googleEnabled ? [googleProvider()] : []), Password({ profile(params) {
+    requireSignupRelease(params.flow);
     const email = String(params.email ?? '').trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('Enter a valid email address.');
     return { email };

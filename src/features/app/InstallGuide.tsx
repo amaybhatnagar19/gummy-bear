@@ -6,7 +6,7 @@ type InstallEvent = Event & {
     outcome: string;
   }>;
 };
-export function InstallGuide() {
+export function InstallGuide({featuresPaused=false}:{featuresPaused?:boolean}) {
   const [prompt, setPrompt] = useState<InstallEvent | null>(null),
     [dismissed, setDismissed] = useState(false);
   useEffect(() => {
@@ -18,7 +18,7 @@ export function InstallGuide() {
     return () => removeEventListener('beforeinstallprompt', listener);
   }, []);
   if (dismissed || matchMedia('(display-mode: standalone)').matches) return null;
-  return <details className="ga-card"><summary>Keep Gummy Bear on your home screen</summary><p>Install for a familiar app shortcut. New AI ideas and saving changes still need a connection. Offline access does not include saved family records.</p>{prompt ? <AppButton onClick={async () => {
+  return <details className="ga-card"><summary>Keep Gummy Bear on your home screen</summary><p>Install for a familiar app shortcut. {featuresPaused?'New AI ideas and family saving are unavailable in this release.':'New AI ideas and saving changes still need a connection.'} Offline access does not include saved family records.</p>{prompt ? <AppButton onClick={async () => {
       await prompt.prompt();
       await prompt.userChoice;
       setPrompt(null);

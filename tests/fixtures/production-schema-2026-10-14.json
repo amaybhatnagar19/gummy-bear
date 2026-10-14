@@ -1,0 +1,699 @@
+{
+  "capturedAt": "2026-10-14",
+  "deploymentName": "sensible-avocet-370",
+  "schema": {
+    "tables": [
+      {
+        "tableName": "accessReservations",
+        "indexes": [],
+        "stagedDbIndexes": [],
+        "searchIndexes": [],
+        "stagedSearchIndexes": [],
+        "vectorIndexes": [],
+        "stagedVectorIndexes": [],
+        "documentType": {
+          "type": "object",
+          "value": {
+            "kind": {
+              "fieldType": {
+                "type": "union",
+                "value": [
+                  {
+                    "type": "literal",
+                    "value": "trial"
+                  },
+                  {
+                    "type": "literal",
+                    "value": "bonus"
+                  }
+                ]
+              },
+              "optional": false
+            },
+            "userId": {
+              "fieldType": {
+                "type": "id",
+                "tableName": "users"
+              },
+              "optional": true
+            },
+            "visitorId": {
+              "fieldType": {
+                "type": "id",
+                "tableName": "visitors"
+              },
+              "optional": true
+            }
+          }
+        },
+        "stagedDocumentType": null
+      },
+      {
+        "tableName": "aiQuota",
+        "indexes": [
+          {
+            "indexDescriptor": "by_key",
+            "fields": [
+              "key",
+              "_creationTime"
+            ]
+          }
+        ],
+        "stagedDbIndexes": [],
+        "searchIndexes": [],
+        "stagedSearchIndexes": [],
+        "vectorIndexes": [],
+        "stagedVectorIndexes": [],
+        "documentType": {
+          "type": "object",
+          "value": {
+            "key": {
+              "fieldType": {
+                "type": "string"
+              },
+              "optional": false
+            },
+            "timestamps": {
+              "fieldType": {
+                "type": "array",
+                "value": {
+                  "type": "number"
+                }
+              },
+              "optional": false
+            }
+          }
+        },
+        "stagedDocumentType": null
+      },
+      {
+        "tableName": "analyticsSettings",
+        "indexes": [
+          {
+            "indexDescriptor": "by_key",
+            "fields": [
+              "key",
+              "_creationTime"
+            ]
+          }
+        ],
+        "stagedDbIndexes": [],
+        "searchIndexes": [],
+        "stagedSearchIndexes": [],
+        "vectorIndexes": [],
+        "stagedVectorIndexes": [],
+        "documentType": {
+          "type": "object",
+          "value": {
+            "key": {
+              "fieldType": {
+                "type": "string"
+              },
+              "optional": false
+            },
+            "startedAt": {
+              "fieldType": {
+                "type": "number"
+              },
+              "optional": false
+            }
+          }
+        },
+        "stagedDocumentType": null
+      },
+      {
+        "tableName": "analyticsVisitors",
+        "indexes": [
+          {
+            "indexDescriptor": "by_token",
+            "fields": [
+              "token",
+              "_creationTime"
+            ]
+          }
+        ],
+        "stagedDbIndexes": [],
+        "searchIndexes": [],
+        "stagedSearchIndexes": [],
+        "vectorIndexes": [],
+        "stagedVectorIndexes": [],
+        "documentType": {
+          "type": "object",
+          "value": {
+            "excluded": {
+              "fieldType": {
+                "type": "boolean"
+              },
+              "optional": false
+            },
+            "token": {
+              "fieldType": {
+                "type": "string"
+              },
+              "optional": false
+            }
+          }
+        },
+        "stagedDocumentType": null
+      },
+      {
+        "tableName": "authAccounts",
+        "indexes": [
+          {
+            "indexDescriptor": "providerAndAccountId",
+            "fields": [
+              "provider",
+              "providerAccountId",
+              "_creationTime"
+            ]
+          },
+          {
+            "indexDescriptor": "userIdAndProvider",
+            "fields": [
+              "userId",
+              "provider",
+              "_creationTime"
+            ]
+          }
+        ],
+        "stagedDbIndexes": [],
+        "searchIndexes": [],
+        "stagedSearchIndexes": [],
+        "vectorIndexes": [],
+        "stagedVectorIndexes": [],
+        "documentType": {
+          "type": "object",
+          "value": {
+            "emailVerified": {
+              "fieldType": {
+                "type": "string"
+              },
+              "optional": true
+            },
+            "phoneVerified": {
+              "fieldType": {
+                "type": "string"
+              },
+              "optional": true
+            },
+            "provider": {
+              "fieldType": {
+                "type": "string"
+              },
+              "optional": false
+            },
+            "providerAccountId": {
+              "fieldType": {
+                "type": "string"
+              },
+              "optional": false
+            },
+            "secret": {
+              "fieldType": {
+                "type": "string"
+              },
+              "optional": true
+            },
+            "userId": {
+              "fieldType": {
+                "type": "id",
+                "tableName": "users"
+              },
+              "optional": false
+            }
+          }
+        },
+        "stagedDocumentType": null
+      },
+      {
+        "tableName": "authRateLimits",
+        "indexes": [
+          {
+            "indexDescriptor": "identifier",
+            "fields": [
+              "identifier",
+              "_creationTime"
+            ]
+          }
+        ],
+        "stagedDbIndexes": [],
+        "searchIndexes": [],
+        "stagedSearchIndexes": [],
+        "vectorIndexes": [],
+        "stagedVectorIndexes": [],
+        "documentType": {
+          "type": "object",
+          "value": {
+            "attemptsLeft": {
+              "fieldType": {
+                "type": "number"
+              },
+              "optional": false
+            },
+            "identifier": {
+              "fieldType": {
+                "type": "string"
+              },
+              "optional": false
+            },
+            "lastAttemptTime": {
+              "fieldType": {
+                "type": "number"
+              },
+              "optional": false
+            }
+          }
+        },
+        "stagedDocumentType": null
+      },
+      {
+        "tableName": "authRefreshTokens",
+        "indexes": [
+          {
+            "indexDescriptor": "sessionId",
+            "fields": [
+              "sessionId",
+              "_creationTime"
+            ]
+          },
+          {
+            "indexDescriptor": "sessionIdAndParentRefreshTokenId",
+            "fields": [
+              "sessionId",
+              "parentRefreshTokenId",
+              "_creationTime"
+            ]
+          }
+        ],
+        "stagedDbIndexes": [],
+        "searchIndexes": [],
+        "stagedSearchIndexes": [],
+        "vectorIndexes": [],
+        "stagedVectorIndexes": [],
+        "documentType": {
+          "type": "object",
+          "value": {
+            "expirationTime": {
+              "fieldType": {
+                "type": "number"
+              },
+              "optional": false
+            },
+            "firstUsedTime": {
+              "fieldType": {
+                "type": "number"
+              },
+              "optional": true
+            },
+            "parentRefreshTokenId": {
+              "fieldType": {
+                "type": "id",
+                "tableName": "authRefreshTokens"
+              },
+              "optional": true
+            },
+            "sessionId": {
+              "fieldType": {
+                "type": "id",
+                "tableName": "authSessions"
+              },
+              "optional": false
+            }
+          }
+        },
+        "stagedDocumentType": null
+      },
+      {
+        "tableName": "authSessions",
+        "indexes": [
+          {
+            "indexDescriptor": "userId",
+            "fields": [
+              "userId",
+              "_creationTime"
+            ]
+          }
+        ],
+        "stagedDbIndexes": [],
+        "searchIndexes": [],
+        "stagedSearchIndexes": [],
+        "vectorIndexes": [],
+        "stagedVectorIndexes": [],
+        "documentType": {
+          "type": "object",
+          "value": {
+            "expirationTime": {
+              "fieldType": {
+                "type": "number"
+              },
+              "optional": false
+            },
+            "userId": {
+              "fieldType": {
+                "type": "id",
+                "tableName": "users"
+              },
+              "optional": false
+            }
+          }
+        },
+        "stagedDocumentType": null
+      },
+      {
+        "tableName": "authVerificationCodes",
+        "indexes": [
+          {
+            "indexDescriptor": "accountId",
+            "fields": [
+              "accountId",
+              "_creationTime"
+            ]
+          },
+          {
+            "indexDescriptor": "code",
+            "fields": [
+              "code",
+              "_creationTime"
+            ]
+          }
+        ],
+        "stagedDbIndexes": [],
+        "searchIndexes": [],
+        "stagedSearchIndexes": [],
+        "vectorIndexes": [],
+        "stagedVectorIndexes": [],
+        "documentType": {
+          "type": "object",
+          "value": {
+            "accountId": {
+              "fieldType": {
+                "type": "id",
+                "tableName": "authAccounts"
+              },
+              "optional": false
+            },
+            "code": {
+              "fieldType": {
+                "type": "string"
+              },
+              "optional": false
+            },
+            "emailVerified": {
+              "fieldType": {
+                "type": "string"
+              },
+              "optional": true
+            },
+            "expirationTime": {
+              "fieldType": {
+                "type": "number"
+              },
+              "optional": false
+            },
+            "phoneVerified": {
+              "fieldType": {
+                "type": "string"
+              },
+              "optional": true
+            },
+            "provider": {
+              "fieldType": {
+                "type": "string"
+              },
+              "optional": false
+            },
+            "verifier": {
+              "fieldType": {
+                "type": "string"
+              },
+              "optional": true
+            }
+          }
+        },
+        "stagedDocumentType": null
+      },
+      {
+        "tableName": "authVerifiers",
+        "indexes": [
+          {
+            "indexDescriptor": "signature",
+            "fields": [
+              "signature",
+              "_creationTime"
+            ]
+          }
+        ],
+        "stagedDbIndexes": [],
+        "searchIndexes": [],
+        "stagedSearchIndexes": [],
+        "vectorIndexes": [],
+        "stagedVectorIndexes": [],
+        "documentType": {
+          "type": "object",
+          "value": {
+            "sessionId": {
+              "fieldType": {
+                "type": "id",
+                "tableName": "authSessions"
+              },
+              "optional": true
+            },
+            "signature": {
+              "fieldType": {
+                "type": "string"
+              },
+              "optional": true
+            }
+          }
+        },
+        "stagedDocumentType": null
+      },
+      {
+        "tableName": "paymentEvents",
+        "indexes": [
+          {
+            "indexDescriptor": "by_paidFrom",
+            "fields": [
+              "paidFrom",
+              "_creationTime"
+            ]
+          }
+        ],
+        "stagedDbIndexes": [],
+        "searchIndexes": [],
+        "stagedSearchIndexes": [],
+        "vectorIndexes": [],
+        "stagedVectorIndexes": [],
+        "documentType": {
+          "type": "object",
+          "value": {
+            "email": {
+              "fieldType": {
+                "type": "string"
+              },
+              "optional": false
+            },
+            "paidFrom": {
+              "fieldType": {
+                "type": "number"
+              },
+              "optional": false
+            },
+            "paidUntil": {
+              "fieldType": {
+                "type": "number"
+              },
+              "optional": false
+            }
+          }
+        },
+        "stagedDocumentType": null
+      },
+      {
+        "tableName": "photoRuns",
+        "indexes": [
+          {
+            "indexDescriptor": "by_time",
+            "fields": [
+              "time",
+              "_creationTime"
+            ]
+          }
+        ],
+        "stagedDbIndexes": [],
+        "searchIndexes": [],
+        "stagedSearchIndexes": [],
+        "vectorIndexes": [],
+        "stagedVectorIndexes": [],
+        "documentType": {
+          "type": "object",
+          "value": {
+            "completed": {
+              "fieldType": {
+                "type": "boolean"
+              },
+              "optional": false
+            },
+            "email": {
+              "fieldType": {
+                "type": "string"
+              },
+              "optional": true
+            },
+            "succeeded": {
+              "fieldType": {
+                "type": "boolean"
+              },
+              "optional": false
+            },
+            "time": {
+              "fieldType": {
+                "type": "number"
+              },
+              "optional": false
+            },
+            "visitorToken": {
+              "fieldType": {
+                "type": "string"
+              },
+              "optional": false
+            }
+          }
+        },
+        "stagedDocumentType": null
+      },
+      {
+        "tableName": "users",
+        "indexes": [
+          {
+            "indexDescriptor": "email",
+            "fields": [
+              "email",
+              "_creationTime"
+            ]
+          },
+          {
+            "indexDescriptor": "phone",
+            "fields": [
+              "phone",
+              "_creationTime"
+            ]
+          }
+        ],
+        "stagedDbIndexes": [],
+        "searchIndexes": [],
+        "stagedSearchIndexes": [],
+        "vectorIndexes": [],
+        "stagedVectorIndexes": [],
+        "documentType": {
+          "type": "object",
+          "value": {
+            "bonusGranted": {
+              "fieldType": {
+                "type": "boolean"
+              },
+              "optional": true
+            },
+            "bonusUsed": {
+              "fieldType": {
+                "type": "boolean"
+              },
+              "optional": true
+            },
+            "email": {
+              "fieldType": {
+                "type": "string"
+              },
+              "optional": true
+            },
+            "emailVerificationTime": {
+              "fieldType": {
+                "type": "number"
+              },
+              "optional": true
+            },
+            "image": {
+              "fieldType": {
+                "type": "string"
+              },
+              "optional": true
+            },
+            "isAnonymous": {
+              "fieldType": {
+                "type": "boolean"
+              },
+              "optional": true
+            },
+            "name": {
+              "fieldType": {
+                "type": "string"
+              },
+              "optional": true
+            },
+            "paidFrom": {
+              "fieldType": {
+                "type": "number"
+              },
+              "optional": true
+            },
+            "paidUntil": {
+              "fieldType": {
+                "type": "number"
+              },
+              "optional": true
+            },
+            "phone": {
+              "fieldType": {
+                "type": "string"
+              },
+              "optional": true
+            },
+            "phoneVerificationTime": {
+              "fieldType": {
+                "type": "number"
+              },
+              "optional": true
+            }
+          }
+        },
+        "stagedDocumentType": null
+      },
+      {
+        "tableName": "visitors",
+        "indexes": [
+          {
+            "indexDescriptor": "by_token",
+            "fields": [
+              "token",
+              "_creationTime"
+            ]
+          }
+        ],
+        "stagedDbIndexes": [],
+        "searchIndexes": [],
+        "stagedSearchIndexes": [],
+        "vectorIndexes": [],
+        "stagedVectorIndexes": [],
+        "documentType": {
+          "type": "object",
+          "value": {
+            "token": {
+              "fieldType": {
+                "type": "string"
+              },
+              "optional": false
+            },
+            "uses": {
+              "fieldType": {
+                "type": "number"
+              },
+              "optional": false
+            }
+          }
+        },
+        "stagedDocumentType": null
+      }
+    ],
+    "schemaValidation": true
+  }
+}

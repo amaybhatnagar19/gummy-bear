@@ -1,3 +1,6 @@
+// Core legacy provider/safety/refund contract under a simulated open release.
+// production-release.test.ts separately verifies the real closed gate; network stays blocked.
+vi.mock('../../convex/releasePolicy', () => ({ requireGenerationRelease: () => undefined }));
 import { convexTest } from 'convex-test';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import schema from '../../convex/schema';

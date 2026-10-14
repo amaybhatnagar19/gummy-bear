@@ -1,0 +1,1 @@
+export const productionTarget: Readonly<{teamId:number;teamSlug:string;projectId:number;projectSlug:string;deploymentName:string;deploymentType:'prod';cloudUrl:string;siteUrl:string;developmentDeploymentName:string;developmentCloudUrl:string;developmentSiteUrl:string}>;

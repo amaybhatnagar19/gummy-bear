@@ -5,13 +5,15 @@
   "main": "index.js",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build && node scripts/prepare-production-build.mjs",
     "test": "node --experimental-strip-types --test tests/rules.test.ts && vitest run",
     "deploy": "npx @convex-dev/static-hosting deploy",
     "testing:verify": "node scripts/convex-testing.mjs verify",
     "testing:push": "node scripts/convex-testing.mjs push",
     "build:testing": "tsc --noEmit && vite build --mode development --outDir dist-v1-testing && node scripts/prepare-testing-build.mjs",
-    "preview:testing": "node scripts/serve-testing-build.mjs"
+    "preview:testing": "node scripts/serve-testing-build.mjs",
+    "release:check": "node scripts/production-preflight.mjs",
+    "predeploy": "node scripts/production-preflight.mjs --before-deploy"
   },
   "keywords": [],
   "author": "",

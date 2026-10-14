@@ -1,3 +1,6 @@
+// Exercise existing billing/analytics semantics under a simulated open release.
+// The unmocked production-release suite verifies the disabled deployment boundary.
+vi.mock('../../convex/releasePolicy', () => ({ requireGenerationRelease: () => undefined }));
 import { convexTest } from 'convex-test';
 import { describe, test, expect, vi, afterEach } from 'vitest';
 import schema from '../../convex/schema';
