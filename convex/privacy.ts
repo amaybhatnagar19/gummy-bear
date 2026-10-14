@@ -1,3 +1,4 @@
+import { identityDeletionPlan } from './deletionPlan';
 import { v, ConvexError } from 'convex/values';
 import { query, mutation, internalMutation } from './_generated/server';
 import type { MutationCtx } from './_generated/server';
@@ -112,3 +113,6 @@ export const continueDeletion = internalMutation({
     return null;
   }
 });
+
+// No browser-supplied target; never returns identifiers, secrets or token values.
+export const identityReadiness = query({args:{},returns:v.object({accounts:v.number(),sessions:v.number(),refreshTokens:v.number(),verificationCodes:v.number(),verifiers:v.number(),truncated:v.boolean(),identityRemovalEnabled:v.literal(false)}),handler:async ctx=>{requireTestingPrivacyOperation();return identityDeletionPlan(ctx,await authenticatedOwner(ctx));}});

@@ -6,6 +6,7 @@ import { AppButton, Notice } from './components';
 import { errorMessage, type PlayFlow } from './usePlayFlow';
 export function PrivacySettings({ flow, onDeleted }: { flow: PlayFlow; onDeleted: () => void }) {
   const status = useQuery(api.privacy.status, {});
+  const identity = useQuery(api.privacy.identityReadiness, status?.isolatedTesting ? {} : 'skip');
   const accept = useMutation(api.privacy.acknowledge), family = useMutation(api.privacy.deleteFamily), account = useMutation(api.privacy.requestAccountDeletion), resume = useMutation(api.privacy.resumeDeletion);
   const [acknowledged, setAcknowledged] = useState(false), [confirmation, setConfirmation] = useState(''), [accountConfirmation, setAccountConfirmation] = useState(''), [understood, setUnderstood] = useState(false), [busy, setBusy] = useState(false), [message, setMessage] = useState('');
   async function run(action: () => Promise<unknown>) {
@@ -25,6 +26,7 @@ export function PrivacySettings({ flow, onDeleted }: { flow: PlayFlow; onDeleted
     {message && <Notice title="Privacy update">{message}</Notice>}
     <p>{privacyCopy.photos}</p><p>{privacyCopy.children}</p><p>{privacyCopy.family}</p>
     <details><summary>Third-party processing and retention</summary><p>{privacyCopy.provider}</p><p>Operational logs, analytics, backups and required financial retention are separate policy decisions. These are not erased by clearing this tab or by deleting family information.</p></details>
+    <details><summary>Account deletion readiness</summary><p>Identity removal is not enabled. Financial exceptions, operational records and backups still need approved policies.</p>{identity ? <p>{identity.truncated ? 'At least ' : ''}{identity.accounts} sign-in methods and {identity.sessions} sessions remain. Their codes and refresh tokens must be removed in the reviewed deletion sequence. These counts do not mean deletion has completed.</p> : <p>Readiness counts are available only in isolated testing.</p>}</details>
     <p>{privacyCopy.paused}</p><p>Privacy information version: {PRIVACY_VERSION}. This acknowledgment is not a substitute for the owner’s legal-policy approval.</p>
     {status?.acknowledged ? <p>You acknowledged this privacy version. Optional phone and future messaging choices remain separate.</p> : <><label className="ga-check"><input type="checkbox" checked={acknowledged} onChange={e => setAcknowledged(e.target.checked)} />I have read the privacy information about family saving and deletion.</label><AppButton secondary disabled={!status?.collectionEnabled || !acknowledged || !!status?.accountDeletion} busy={busy} onClick={() => void run(async () => { await accept({ version: PRIVACY_VERSION, accepted: true }); setMessage('Privacy information acknowledged. Optional contact choices remain separate.'); })}>Acknowledge privacy information</AppButton></>}
     <AppButton secondary onClick={() => void run(async () => setMessage(await flow.clearTemporary()))}>Clear temporary photo and ideas</AppButton>

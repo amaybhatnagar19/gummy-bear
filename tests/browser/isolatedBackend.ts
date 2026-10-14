@@ -63,6 +63,7 @@ export async function isolate(page: Page, account: 'guest' | 'paid' | 'payment' 
           if (mod.type === 'Remove') return { type: 'QueryRemoved', queryId: mod.queryId };
           if (mod.udfPath === 'v1Capabilities:status') return {type:'QueryUpdated',queryId:mod.queryId,value:{isolatedTesting:!closedRelease,personalData:family?.policyOpen??false,liveAIReady:flow,google:false,emailOtp:false,emailReminders:false},logLines:[],journal:null};
           if(closedRelease&&/^(family|privacy):/.test(mod.udfPath??''))throw new Error('Closed release attempted an unfinished family/privacy query.');
+          if(mod.udfPath==='privacy:identityReadiness')return {type:'QueryUpdated',queryId:mod.queryId,value:{accounts:1,sessions:1,refreshTokens:1,verificationCodes:0,verifiers:0,truncated:false,identityRemovalEnabled:false},logLines:[],journal:null};
           if (mod.udfPath === 'privacy:status') {privacyQueries.add(mod.queryId);return {type:'QueryUpdated',queryId:mod.queryId,value:privacy,logLines:[],journal:null};}
           if (mod.udfPath === 'family:state') { familyQueries.add(mod.queryId);return {type:'QueryUpdated',queryId:mod.queryId,value:family??{policyOpen:false,children:[],toys:[],activities:[],preferences:null},logLines:[],journal:null}; }
           if (mod.udfPath === 'family:reminders') return {type:'QueryUpdated',queryId:mod.queryId,value:[],logLines:[],journal:null};

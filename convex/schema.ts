@@ -17,6 +17,7 @@ export default defineSchema({
   testingInvites: defineTable({owner:v.optional(v.id('users')),capabilityDigest:v.optional(v.string()),expiresAt:v.number(),daily:v.number(),day:v.string(),calls:v.number(),recognitionCalls:v.optional(v.number()),activeUntil:v.number(),lease:v.optional(v.string())}).index('by_owner',['owner']).index('by_digest',['capabilityDigest']),
 
   ...authTables,
+  authVerifiers: defineTable(authTables.authVerifiers.validator).index("signature", ["signature"]).index("by_session", ["sessionId"]),
   users: defineTable({ ...authTables.users.validator.fields,
     paidFrom: v.optional(v.number()), paidUntil: v.optional(v.number()),
     bonusGranted: v.optional(v.boolean()), bonusUsed: v.optional(v.boolean()),

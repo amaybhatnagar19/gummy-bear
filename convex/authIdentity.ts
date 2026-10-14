@@ -1,6 +1,7 @@
 import { ConvexError } from 'convex/values';
 import type { MutationCtx } from './_generated/server';
 import type { Id } from './_generated/dataModel';
+import { requireNoDeletion } from './privacyAccess';
 import { requireDataPolicy } from './v1Policy';
 // existingUserId is supplied by Convex Auth from the proved provider account,
 // never from a browser-supplied email or account ID.
@@ -12,6 +13,7 @@ export async function preserveIdentity(ctx: MutationCtx, args: {
 }): Promise<Id<'users'>> {
   if (args.existingUserId) {
     if (!(await ctx.db.get(args.existingUserId))) throw new ConvexError('This account is unavailable.');
+    await requireNoDeletion(ctx, args.existingUserId);
     return args.existingUserId;
   }
   requireDataPolicy();
