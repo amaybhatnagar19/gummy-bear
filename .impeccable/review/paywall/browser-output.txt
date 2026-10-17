@@ -1,0 +1,9 @@
+
+Running 2 tests using 1 worker
+
+  ✓  1 tests/browser/paywall.spec.ts:4:1 › two free turns, signup, one account bonus, manual payment, and returning login (40.4s)
+FULL RAW AI OUTPUT:
+{"toys":["Peach-colored stuffed animal wearing patterned clothes, a tan netted hat, and blue glasses","Two baby dolls"],"ideas":[{"title":"Quick hello","instructions":"Have the stuffed animal greet each baby doll, then let the dolls take turns saying hello back."},{"title":"Cozy outing","instructions":"Pretend the stuffed animal is showing the two baby dolls around. Describe what they see and let each doll choose where to go next."},{"title":"Storytime together","instructions":"Sit with your child and make up a bedtime story: the stuffed animal wears its blue glasses and tells the two baby dolls a gentle tale."}]}
+  ✓  2 tests/browser/photo.spec.ts:3:1 › parent picks one real toy photo and requests three ideas (8.1s)
+
+  2 passed (52.0s)

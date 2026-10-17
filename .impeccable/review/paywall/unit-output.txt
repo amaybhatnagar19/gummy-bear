@@ -1,0 +1,24 @@
+
+> build-sprint-app@1.0.0 test
+> node --experimental-strip-types --test tests/rules.test.ts && vitest run
+
+✔ JSON reply mode has the required JSON instruction in the input message (1.485541ms)
+✔ 100 calls are allowed, the 101st is blocked, and only expired calls free capacity (4.302083ms)
+✔ a reply must contain three complete ideas, or no toys and no ideas (4.071875ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 673.82725
+
+ RUN  v5.0.4 /Users/amaybhatnagar/build-sprint-app
+
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  01:12:20
+   Duration  1.75s (import 61%, transform 20%, tests 18%, worker 1%)
+

@@ -1,0 +1,24 @@
+{
+  "status": "success",
+  "value": {
+    "ideas": [
+      {
+        "instructions": "Have the stuffed animal gently peek the sleeping doll out from its blanket, then tuck it back in.",
+        "title": "Quick peekaboo"
+      },
+      {
+        "instructions": "Pretend the stuffed animal is taking the sleeping doll on a quiet adventure; describe places they visit and how they keep the doll cozy.",
+        "title": "Cozy journey"
+      },
+      {
+        "instructions": "Take turns being the stuffed animal and the doll. Make up a short bedtime story, with the stuffed animal caring for its sleepy friend.",
+        "title": "Bedtime story"
+      }
+    ],
+    "raw": "{\"toys\":[\"tan stuffed animal wearing a straw hat and floral clothes\",\"small sleeping doll\"],\"ideas\":[{\"title\":\"Quick peekaboo\",\"instructions\":\"Have the stuffed animal gently peek the sleeping doll out from its blanket, then tuck it back in.\"},{\"title\":\"Cozy journey\",\"instructions\":\"Pretend the stuffed animal is taking the sleeping doll on a quiet adventure; describe places they visit and how they keep the doll cozy.\"},{\"title\":\"Bedtime story\",\"instructions\":\"Take turns being the stuffed animal and the doll. Make up a short bedtime story, with the stuffed animal caring for its sleepy friend.\"}]}",
+    "toys": [
+      "tan stuffed animal wearing a straw hat and floral clothes",
+      "small sleeping doll"
+    ]
+  }
+}
