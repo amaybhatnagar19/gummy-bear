@@ -49,3 +49,7 @@ The CLI records an administrator-provided human label and credential fingerprint
 **GO:** isolated development use with synthetic accounts; local release-candidate review.
 
 **NO-GO:** production deployment until the prepared minimal legacy candidate is reconciled against the current live backend source/dependencies/configuration. The ordinary checkout is unsuitable for production deployment because it includes unrelated V1 functionality. Do not bypass this boundary. No production user grant is authorized by this implementation task.
+
+## Subsequent production preflight — 17 October 2026
+
+The live-source comparison has now been completed, and a minimal production candidate plus rollback package are prepared. See [ADMIN_PAID_ACCESS_PRODUCTION_PLAN.md](ADMIN_PAID_ACCESS_PRODUCTION_PLAN.md) for the evidence, exact scope, remaining deployment checks and approval request. Production is still unchanged; deployment and any real-user grant remain unexecuted.
