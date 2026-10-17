@@ -3,7 +3,9 @@ import { v } from "convex/values";
 import { authTables } from "@convex-dev/auth/server";
 import { toyStatus, cadence, feedback } from '../shared/v1';
 import { activityValidator } from './activityResponses';
+import { complimentaryGrants } from './complimentarySchema';
 export default defineSchema({
+  complimentaryGrants,
   aiEvaluations: defineTable({invite:v.id('testingInvites'),lease:v.string(),caseId:v.string(),kind:v.union(v.literal('recognition'),v.literal('generation')),age:v.number(),startedAt:v.number(),state:v.union(v.literal('reserved'),v.literal('measured'),v.literal('uncertain')),outputVerified:v.optional(v.boolean()),latencyMs:v.optional(v.number()),countedInputTokens:v.optional(v.number()),inputTokens:v.optional(v.number()),cachedTokens:v.optional(v.number()),outputTokens:v.optional(v.number()),reasoningTokens:v.optional(v.number()),tokenCostMicros:v.optional(v.number()),costUpperMicros:v.optional(v.number()),acceptedActivities:v.optional(v.number()),rejectedActivities:v.optional(v.number()),pricingVersion:v.string()}).index('by_lease',['lease']).index('by_started',['startedAt']),
   privacyConsents: defineTable({owner:v.id('users'),scope:v.union(v.literal('privacy'),v.literal('phone'),v.literal('future_whatsapp')),version:v.string(),granted:v.boolean(),updatedAt:v.number()}).index('by_owner',['owner']).index('by_owner_scope',['owner','scope']),
   deletionRequests: defineTable({owner:v.id('users'),scope:v.union(v.literal('family'),v.literal('account')),status:v.union(v.literal('deleting_family'),v.literal('finished_family'),v.literal('awaiting_policy')),stage:v.number(),deletedCount:v.number(),requestedAt:v.number(),updatedAt:v.number()}).index('by_owner_scope',['owner','scope']),

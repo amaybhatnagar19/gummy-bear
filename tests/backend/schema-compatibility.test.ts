@@ -9,7 +9,7 @@ test('every legacy auth, payment, access and analytics table keeps its exact val
  const indexes=candidate.indexes.filter(i=>!(table.tableName==='authVerifiers'&&i.indexDescriptor==='by_session'));
  expect({...candidate,indexes}).toEqual(table);
  }
- expect(next.tables.length-old.tables.length).toBe(11);
+ expect(next.tables.length-old.tables.length).toBe(12);
 });
 
 import live from '../fixtures/production-schema-2026-10-14.json';
@@ -22,7 +22,7 @@ test('actual read-only production schema retains every existing table definition
   const indexes=rest.indexes.map(index=>{expect(index.fields.at(-1)).toBe('_creationTime');return {...index,fields:index.fields.slice(0,-1)};}).sort((a,b)=>a.indexDescriptor.localeCompare(b.indexDescriptor));
   const candidate=next.tables.find((t:{tableName:string})=>t.tableName===table.tableName);expect({...candidate,indexes:[...candidate!.indexes].filter(i=>!(table.tableName==='authVerifiers'&&i.indexDescriptor==='by_session')).sort((a,b)=>a.indexDescriptor.localeCompare(b.indexDescriptor))}).toEqual({...rest,indexes});
  }
- expect(next.tables.length-live.schema.tables.length).toBe(11);
+ expect(next.tables.length-live.schema.tables.length).toBe(12);
 });
 
 test('only the reviewed additive auth verifier index supplements existing indexes',()=>{const next=serialized(current);expect(next.tables.find(t=>t.tableName==='authVerifiers')!.indexes.find(i=>i.indexDescriptor==='by_session')).toEqual({indexDescriptor:'by_session',fields:['sessionId']});});

@@ -1,0 +1,20 @@
+// PREPARATION ONLY: no network calls, no deployment, no credentials copied.
+import { execFileSync } from 'node:child_process';
+import { mkdirSync, writeFileSync, readFileSync, copyFileSync, symlinkSync, existsSync } from 'node:fs';
+import { resolve } from 'node:path';
+const root=resolve(new URL('..',import.meta.url).pathname);
+const baseline=execFileSync('git',['rev-parse','e623093^{commit}'],{cwd:root,encoding:'utf8'}).trim();
+const destination=resolve(root,'.release-backups',`admin-paid-candidate-${Date.now()}`);
+mkdirSync(destination,{recursive:true,mode:0o700});
+const archive=execFileSync('git',['archive',baseline,'convex'],{cwd:root});
+execFileSync('tar',['-x','-C',destination],{input:archive});
+for(const name of ['complimentary.ts','complimentarySchema.ts']) copyFileSync(resolve(root,'convex',name),resolve(destination,'convex',name));
+const schemaPath=resolve(destination,'convex/schema.ts');
+writeFileSync(schemaPath,readFileSync(schemaPath,'utf8').replace('export default defineSchema({',"import { complimentaryGrants } from './complimentarySchema';\nexport default defineSchema({\n  complimentaryGrants,"));
+copyFileSync(resolve(root,'package.json'),resolve(destination,'package.json'));
+if(!existsSync(resolve(destination,'node_modules'))) symlinkSync(resolve(root,'node_modules'),resolve(destination,'node_modules'),'dir');
+writeFileSync(resolve(destination,'tsconfig.json'),JSON.stringify({compilerOptions:{target:'ES2022',lib:['ES2022','DOM'],module:'ESNext',moduleResolution:'Bundler',strict:true,skipLibCheck:true,noEmit:true,allowJs:true,types:['node']},include:['convex']}));
+writeFileSync(resolve(destination,'RELEASE_BOUNDARY.json'),JSON.stringify({baseline,productionDeployment:'sensible-avocet-370',status:'NOT VERIFIED AGAINST CURRENT LIVE BACKEND; DO NOT DEPLOY',newModules:['complimentary.ts','complimentarySchema.ts'],existingModuleChanges:['schema.ts: add complimentaryGrants only'],environmentFilesCopied:false},null,2));
+execFileSync(resolve(root,'node_modules/.bin/tsc'),['--noEmit'],{cwd:destination,stdio:'pipe'});
+console.log(`Prepared and typechecked legacy-compatible candidate: ${destination}`);
+console.log('No deployment performed. Live backend source/dependency equivalence must be verified first.');
