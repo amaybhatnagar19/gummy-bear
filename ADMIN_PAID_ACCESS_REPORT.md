@@ -53,3 +53,5 @@ The CLI records an administrator-provided human label and credential fingerprint
 ## Subsequent production preflight — 17 October 2026
 
 The live-source comparison has now been completed, and a minimal production candidate plus rollback package are prepared. See [ADMIN_PAID_ACCESS_PRODUCTION_PLAN.md](ADMIN_PAID_ACCESS_PRODUCTION_PLAN.md) for the evidence, exact scope, remaining deployment checks and approval request. Production is still unchanged; deployment and any real-user grant remain unexecuted.
+
+Production publication update (17 October 2026): the approved minimal backend has now been deployed and verified. See [ADMIN_PAID_ACCESS_DEPLOYMENT_REPORT.md](ADMIN_PAID_ACCESS_DEPLOYMENT_REPORT.md) for final evidence and verification limits. No paid access was granted to any user.

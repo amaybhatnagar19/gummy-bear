@@ -142,3 +142,5 @@ Never restore an old database, delete audit records, reset user expiries or rewr
 - Administrative audit retention/deletion policy has no newly invented legal period; free-text reasons should contain no unnecessary personal information.
 
 **Approval requested: deploy only this minimal backend candidate to `sensible-avocet-370`, preserving Option A and adding the audit table/four private operations. This does not authorize granting access to any user.**
+
+Production publication update (17 October 2026): the approved minimal backend has now been deployed and verified. See [ADMIN_PAID_ACCESS_DEPLOYMENT_REPORT.md](ADMIN_PAID_ACCESS_DEPLOYMENT_REPORT.md) for final evidence and verification limits. No paid access was granted to any user.

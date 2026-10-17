@@ -1,6 +1,6 @@
 # Complimentary paid-access administration
 
-Status: implemented and deployed to isolated development `blissful-dotterel-906`. **Not deployed to production.** No real user has been granted access.
+Status: implemented and verified on production `sensible-avocet-370` and isolated development `blissful-dotterel-906`. No real user has been granted access. See [deployment report](ADMIN_PAID_ACCESS_DEPLOYMENT_REPORT.md).
 
 ## Commands
 
@@ -14,7 +14,7 @@ npm run admin:revoke-paid -- --deployment=blissful-dotterel-906 --email=user@exa
 
 These examples are commands to run deliberately, not requests to create these example accounts. An account must already exist. Email is trimmed and lowercased; zero or multiple exact indexed matches stop the operation. Stored email addresses follow existing authentication normalization; legacy mixed-case addresses are not silently rewritten.
 
-There is no default environment. Production requires **both** `--deployment=sensible-avocet-370` and `--production=sensible-avocet-370`. Production functions are not installed yet, so these commands are not currently available there. Do not grant any production user access without the owner's further confirmation.
+There is no default environment. Production requires **both** `--deployment=sensible-avocet-370` and `--production=sensible-avocet-370`. Production functions are now installed and verified. Do not grant any production user access without the owner's further confirmation.
 
 Grant/revoke require an interactive terminal and the exact displayed confirmation phrase containing operation, email and deployment. There is no `--yes` option. Check is read-only. Inherited Convex overrides are stripped; the installed Convex CLI uses its administrator login and explicit deployment selector. The command never uses `--push` or deploys code. Missing authentication/authorization stops the operation. Raw CLI failures are withheld to avoid printing credentials; check access before retrying an ambiguous result.
 
@@ -52,3 +52,5 @@ Do **not** run the repository's ordinary deploy command for this feature. The cu
 Rollback: stop using admin commands; remove only the new internal functions using the verified minimal baseline, while retaining the additive audit table and its records. Never restore an old database or delete audit rows. Reverting code does not revoke grants; use the guarded revocation workflow after checking subsequent payments. The existing user/payment/auth tables have no schema changes.
 
 Production preflight update (17 October 2026): live-source compatibility has been established for the fixed candidate described in [ADMIN_PAID_ACCESS_PRODUCTION_PLAN.md](ADMIN_PAID_ACCESS_PRODUCTION_PLAN.md). That plan supersedes the earlier unresolved source-comparison blocker above. Production deployment still requires explicit approval, and no real-user grant is included.
+
+Production deployment completed (17 October 2026): [ADMIN_PAID_ACCESS_DEPLOYMENT_REPORT.md](ADMIN_PAID_ACCESS_DEPLOYMENT_REPORT.md) supersedes the historical deployment blockers above. No user grant was executed.
